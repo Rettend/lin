@@ -48,9 +48,9 @@ describe('translate command', () => {
   it('should call check and sync commands with correct arguments', async () => {
     const args = {
       ...baseArgsToRun,
-      '_': [],
-      'silent': false,
-      'remove-unused': false,
+      _: [],
+      silent: false,
+      prune: false,
     }
 
     await translateCommand.run!({ args } as any)

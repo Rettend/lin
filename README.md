@@ -111,10 +111,10 @@ To translate only specific locales, list them like this:
 lin translate es fr
 ```
 
-To also remove unused keys from all locales, use the `--remove-unused` flag:
+To also remove unused keys from all locales, use the `--prune` flag:
 
 ```bash
-lin translate -r
+lin translate -u
 ```
 
 To make the output more minimal (for CI or scripts), use the `--silent` flag:
@@ -292,10 +292,10 @@ This will report any discrepancies. To add the missing keys to your default loca
 lin check -f
 ```
 
-To remove unused keys from all locale files, use the `--remove-unused` flag.
+To remove unused keys from all locale files, use the `--prune` flag.
 
 ```bash
-lin check -r
+lin check -u
 ```
 
 You can also use `check` to find missing keys in your locales compared to the default locale file with the `--keys` flag (this skips the codebase parsing):
@@ -349,7 +349,7 @@ npm i -D lint-staged simple-git-hooks
 npx simple-git-hooks
 ```
 
-You can also run `lin check -S -f` or `lin check -S -r` to automatically fix issues, or even `lin translate -S` to translate them too.
+You can also run `lin check -S -f` or `lin check -S -u` to automatically fix issues, or even `lin translate -S` to translate them too.
 
 ### undo
 

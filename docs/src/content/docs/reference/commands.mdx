@@ -50,7 +50,7 @@ Automates the entire process of finding new keys in your code, adding them to yo
     lin translate es fr
 
     # Also remove unused keys from all locales
-    lin translate -r
+    lin translate -u
 
     # Run in silent mode for CI
     lin translate -S
@@ -164,8 +164,8 @@ Validates and maintains your locale files. It can find missing and unused keys, 
     # Add missing keys to default locale with --fix
     lin check -f
 
-    # Remove unused keys from all locales with --remove-unused
-    lin check -r
+    # Remove unused keys from all locales with --prune
+    lin check -u
 
     # Check for missing keys in other locales with --keys
     lin check -k
@@ -205,7 +205,7 @@ Finally, activate the hooks:
 ```bash
 npx simple-git-hooks
 ```
-You can also run `lin check -S -f` or `lin check -S -r` to automatically fix issues, or even `lin translate -S` to translate them too.
+You can also run `lin check -S -f` or `lin check -S -u` to automatically fix issues, or even `lin translate -S` to translate them too.
 
 ### `models`
 

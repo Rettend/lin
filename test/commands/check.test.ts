@@ -177,7 +177,7 @@ describe('check command', () => {
   })
 
   const runCheckCommand = (args: Record<string, any> = {}) => {
-    const fullArgs = { ...baseArgsToRun, 'sort': undefined, 'locale': undefined, 'fix': false, 'info': false, 'keys': false, 'remove-unused': false, 'silent': false, ...args }
+    const fullArgs = { ...baseArgsToRun, sort: undefined, locale: undefined, fix: false, info: false, keys: false, prune: false, silent: false, ...args }
     return checkCommand.run?.({
       args: fullArgs as any,
       rawArgs: [],
@@ -268,13 +268,13 @@ describe('check command', () => {
       expect(mockConsoleLog).toHaveBeenCalledWith(consoleModule.ICONS.note, 'Samples: `b`')
     })
 
-    it('should remove unused keys with --remove-unused', async () => {
+    it('should remove unused keys with --prune', async () => {
       mockConfirm.mockResolvedValue(true)
       mockParse.mockReturnValue([{ key: 'a' }])
       setupVirtualFile('locales/en-US.json', { a: '1', b: '2' })
       setupVirtualFile('locales/es-ES.json', { a: 'uno', b: 'dos' })
 
-      await runCheckCommand({ 'remove-unused': true })
+      await runCheckCommand({ prune: true })
 
       expect(mockConfirm).toHaveBeenCalled()
 
@@ -398,7 +398,7 @@ describe('check command', () => {
       setupVirtualFile('locales/en-US.json', { a: '1', b: '2' })
       setupVirtualFile('locales/es-ES.json', { a: 'uno', b: 'dos' })
 
-      await runCheckCommand({ 'remove-unused': true, 'silent': true })
+      await runCheckCommand({ prune: true, silent: true })
 
       expect(mockConfirm).not.toHaveBeenCalled()
       const enJson = JSON.parse(getVfs()['locales/en-US.json'])

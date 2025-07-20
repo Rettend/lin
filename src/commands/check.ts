@@ -34,38 +34,38 @@ export default defineCommand({
   },
   args: {
     ...commonArgs,
-    'silent': {
+    silent: {
       alias: 'S',
       type: 'boolean',
       description: 'show minimal, script-friendly output',
       default: false,
     },
-    'sort': {
+    sort: {
       alias: 's',
       type: 'string',
       description: 'sort the locales alphabetically or according to the default locale',
       required: false,
       valueHint: 'abc | def',
     },
-    'keys': {
+    keys: {
       alias: 'k',
       type: 'boolean',
       description: 'check for missing keys in other locales compared to the default locale',
       default: false,
     },
-    'remove-unused': {
-      alias: 'r',
+    prune: {
+      alias: 'u',
       type: 'boolean',
       description: 'remove unused keys from all locales',
       default: false,
     },
-    'fix': {
+    fix: {
       alias: 'f',
       type: 'boolean',
       description: 'add missing keys with empty string values instead of erroring',
       default: false,
     },
-    'info': {
+    info: {
       alias: 'i',
       type: 'boolean',
       description: 'show detailed info about config and locales',
@@ -127,7 +127,7 @@ export default defineCommand({
               console.log(ICONS.success, `Added \`${Object.keys(missingKeys).length}\` missing keys to **${locale}** markdown snapshot.`)
             }
 
-            if (args['remove-unused'] && Object.keys(unusedKeys).length > 0) {
+            if (args.prune && Object.keys(unusedKeys).length > 0) {
               for (const key of Object.keys(unusedKeys))
                 delete targetUnits[key]
 
@@ -351,7 +351,7 @@ export default defineCommand({
           if (unusedKeys.length > 0) {
             hasIssues = true
             if (args.silent) {
-              if (!args['remove-unused']) {
+              if (!args.prune) {
                 console.log(`Unused keys: ${unusedKeys.length}`)
                 const sample = unusedKeys.slice(0, 10)
                 if (sample.length > 0)
@@ -387,7 +387,7 @@ export default defineCommand({
               console.log(`Fixed ${missingKeys.length} missing keys.`)
           }
 
-          if (args['remove-unused'] && unusedKeys.length > 0) {
+          if (args.prune && unusedKeys.length > 0) {
             const result = args.silent
               ? true
               : await confirm({
@@ -418,11 +418,11 @@ export default defineCommand({
             }
           }
 
-          if (hasIssues && !args.fix && !args['remove-unused']) {
+          if (hasIssues && !args.fix && !args.prune) {
             if (args.silent)
-              console.log('\nKey issues detected. Run with --fix to add missing keys or --remove-unused to delete them.')
+              console.log('\nKey issues detected. Run with --fix to add missing keys or --prune to delete them.')
             else
-              console.log(ICONS.error, 'Key issues detected. Run with --fix to add missing keys or --remove-unused to delete them.')
+              console.log(ICONS.error, 'Key issues detected. Run with --fix to add missing keys or --prune to delete them.')
             process.exitCode = 1
           }
         }

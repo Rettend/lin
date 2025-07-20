@@ -27,10 +27,10 @@ To translate only specific locales, list them like this:
 lin translate es fr
 ```
 
-To also remove unused keys from all locales, use the `--remove-unused` flag:
+To also remove unused keys from all locales, use the `--prune` flag:
 
 ```bash
-lin translate -r
+lin translate -u
 ```
 
 To make the output more minimal (for CI or scripts), use the `--silent` flag:

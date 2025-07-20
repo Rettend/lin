@@ -12,20 +12,20 @@ export default defineCommand({
   },
   args: {
     ...allArgs,
-    'locale': {
+    locale: {
       type: 'positional',
       description: 'the locales to translate',
       required: false,
       valueHint: 'all | def | en | en-US',
     },
-    'silent': {
+    silent: {
       alias: 'S',
       type: 'boolean',
       description: 'show minimal, script-friendly output',
       default: false,
     },
-    'remove-unused': {
-      alias: 'r',
+    prune: {
+      alias: 'u',
       type: 'boolean',
       description: 'remove unused keys from all locales',
       default: false,
@@ -41,12 +41,12 @@ export default defineCommand({
 
     const checkArgs: any = {
       ...args,
-      'silent': args.silent,
-      'fix': true,
-      'keys': false,
-      'remove-unused': args['remove-unused'],
-      'info': false,
-      'undo': false,
+      silent: args.silent,
+      fix: true,
+      keys: false,
+      prune: args.prune,
+      info: false,
+      undo: false,
     }
 
     await checkCommand.run?.({ args: checkArgs, rawArgs: [], cmd: checkCommand.meta as any })
