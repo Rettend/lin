@@ -31,7 +31,6 @@ export const markdownAdapter: FormatAdapter = {
     const relPath = getRelativeFilePath(filePath)
     const units: Record<string, string> = {}
 
-    // front-matter keys first
     for (const [k, v] of Object.entries(frontmatter)) {
       if (typeof v === 'string')
         units[`${relPath}::frontmatter.${k}`] = v
@@ -41,31 +40,27 @@ export const markdownAdapter: FormatAdapter = {
     const counters: ExtractionState = { paragraph: 0, heading: 0, listItem: 0 }
 
     visit(tree, (node) => {
-      // skip code / inlineCode / html / jsx completely
       const skipTypes = ['code', 'inlineCode', 'html', 'jsx']
       if (skipTypes.includes(node.type))
         return SKIP
 
       switch (node.type) {
         case 'paragraph': {
-          counters.paragraph += 1
-          const index = counters.paragraph
+          const index = counters.paragraph++
           const text = getLiteralText(node as Parent)
           if (text.trim())
             units[makeKey(relPath, 'paragraph', index)] = text
           break
         }
         case 'heading': {
-          counters.heading += 1
-          const index = counters.heading
+          const index = counters.heading++
           const text = getLiteralText(node as Parent)
           if (text.trim())
             units[makeKey(relPath, 'heading', index)] = text
           break
         }
         case 'listItem': {
-          counters.listItem += 1
-          const index = counters.listItem
+          const index = counters.listItem++
           const text = getLiteralText(node as Parent)
           if (text.trim())
             units[makeKey(relPath, 'listItem', index)] = text
@@ -84,7 +79,6 @@ export const markdownAdapter: FormatAdapter = {
     const { content: mdContent, data: frontmatter } = matter(source)
     const flatTranslations = flattenObject(translations)
 
-    // frontmatter apply
     let fmChanged = false
     const newFrontmatter: Record<string, any> = { ...frontmatter }
     for (const key of Object.keys(frontmatter)) {
@@ -106,16 +100,13 @@ export const markdownAdapter: FormatAdapter = {
       let tKey: string | undefined
       switch (node.type) {
         case 'paragraph':
-          counters.paragraph += 1
-          tKey = makeKey(relPath, 'paragraph', counters.paragraph)
+          tKey = makeKey(relPath, 'paragraph', counters.paragraph++)
           break
         case 'heading':
-          counters.heading += 1
-          tKey = makeKey(relPath, 'heading', counters.heading)
+          tKey = makeKey(relPath, 'heading', counters.heading++)
           break
         case 'listItem':
-          counters.listItem += 1
-          tKey = makeKey(relPath, 'listItem', counters.listItem)
+          tKey = makeKey(relPath, 'listItem', counters.listItem++)
           break
       }
       if (tKey && flatTranslations[tKey]) {

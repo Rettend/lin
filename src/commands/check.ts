@@ -130,7 +130,8 @@ export default defineCommand({
             sourceWasModified = true
             sourceSnapshot = { ...sourceSnapshot, ...missingFromSnapshot }
             fs.writeFileSync(sourceSnapshotPath, JSON.stringify(sourceSnapshot, null, 2), 'utf-8')
-            console.log(ICONS.success, `Added \`${Object.keys(missingFromSnapshot).length}\` new content blocks to the default snapshot.`)
+            if (!args.silent)
+              console.log(ICONS.success, `Added \`${Object.keys(missingFromSnapshot).length}\` new content blocks to the default snapshot.`)
 
             const missingEmpty: Record<string, string> = {}
             for (const key of Object.keys(missingFromSnapshot))
@@ -146,7 +147,8 @@ export default defineCommand({
 
               const merged = { ...targetUnits, ...missingEmpty }
               fs.writeFileSync(targetSnapshotPath, JSON.stringify(merged, null, 2), 'utf-8')
-              console.log(ICONS.success, `Added \`${Object.keys(missingFromSnapshot).length}\` missing keys to **${locale}** markdown snapshot.`)
+              if (!args.silent)
+                console.log(ICONS.success, `Added \`${Object.keys(missingFromSnapshot).length}\` missing keys to **${locale}** markdown snapshot.`)
             }
           }
 
@@ -162,7 +164,8 @@ export default defineCommand({
 
               fs.writeFileSync(snapshotPath, JSON.stringify(snapshotContent, null, 2), 'utf-8')
             }
-            console.log(ICONS.success, `Removed \`${Object.keys(unusedInSnapshot).length}\` unused keys from all markdown snapshots.`)
+            if (!args.silent)
+              console.log(ICONS.success, `Removed \`${Object.keys(unusedInSnapshot).length}\` unused keys from all markdown snapshots.`)
 
             if (fs.existsSync(sourceSnapshotPath)) {
               const potentiallyNested = JSON.parse(fs.readFileSync(sourceSnapshotPath, 'utf-8'))
@@ -179,28 +182,33 @@ export default defineCommand({
 
           if (hasSourceIssues) {
             if (Object.keys(missingFromSnapshot).length > 0 && !args.fix) {
-              console.log(ICONS.warning, `Found \`${Object.keys(missingFromSnapshot).length}\` new content blocks in source files not present in the default snapshot.`)
-              const sample = Object.keys(missingFromSnapshot).slice(0, 5)
-              if (sample.length > 0)
-                console.log(ICONS.note, `Samples: ${sample.map(k => `\`${k}\``).join(', ')}${Object.keys(missingFromSnapshot).length > sample.length ? '...' : ''}`)
+              if (!args.silent) {
+                console.log(ICONS.warning, `Found \`${Object.keys(missingFromSnapshot).length}\` new content blocks in source files not present in the default snapshot.`)
+                const sample = Object.keys(missingFromSnapshot).slice(0, 5)
+                if (sample.length > 0)
+                  console.log(ICONS.note, `Samples: ${sample.map(k => `\`${k}\``).join(', ')}${Object.keys(missingFromSnapshot).length > sample.length ? '...' : ''}`)
+              }
             }
 
             if (Object.keys(unusedInSnapshot).length > 0 && !args.prune) {
-              console.log(ICONS.warning, `Found \`${Object.keys(unusedInSnapshot).length}\` unused keys in default snapshot (content removed from source files).`)
-              const sample = Object.keys(unusedInSnapshot).slice(0, 5)
-              if (sample.length > 0)
-                console.log(ICONS.note, `Samples: ${sample.map(k => `\`${k}\``).join(', ')}${Object.keys(unusedInSnapshot).length > sample.length ? '...' : ''}`)
+              if (!args.silent) {
+                console.log(ICONS.warning, `Found \`${Object.keys(unusedInSnapshot).length}\` unused keys in default snapshot (content removed from source files).`)
+                const sample = Object.keys(unusedInSnapshot).slice(0, 5)
+                if (sample.length > 0)
+                  console.log(ICONS.note, `Samples: ${sample.map(k => `\`${k}\``).join(', ')}${Object.keys(unusedInSnapshot).length > sample.length ? '...' : ''}`)
+              }
             }
-            console.log(ICONS.info, `Run with \`--fix\` to add missing content or \`--prune\` to remove unused content from snapshots.`)
+            if (!args.silent)
+              console.log(ICONS.info, `Run with \`--fix\` to add missing content or \`--prune\` to remove unused content from snapshots.`)
             process.exitCode = 1
             return
           }
 
-          if ((args.fix || args.prune) && !sourceWasModified) {
-            const hasMissingAfterFix = Object.keys(findMissingFlat(currentSourceUnits, sourceSnapshot)).length > 0
-            const hasUnusedAfterPrune = Object.keys(findMissingFlat(sourceSnapshot, currentSourceUnits)).length > 0
-            if (!hasMissingAfterFix && !hasUnusedAfterPrune)
-              console.log(ICONS.success, `Markdown source snapshot is up to date.`)
+          if (!sourceWasModified) {
+            if (Object.keys(missingFromSnapshot).length === 0 && Object.keys(unusedInSnapshot).length === 0) {
+              if (!args.silent)
+                console.log(ICONS.success, `Markdown source snapshot is up to date.`)
+            }
           }
 
           let hasIssues = false
@@ -228,7 +236,8 @@ export default defineCommand({
                 missingEmpty[key] = ''
               const merged = { ...targetUnits, ...missingEmpty }
               fs.writeFileSync(targetSnapshotPath, JSON.stringify(merged, null, 2), 'utf-8')
-              console.log(ICONS.success, `Added \`${Object.keys(missingKeys).length}\` missing keys to **${locale}** markdown snapshot.`)
+              if (!args.silent)
+                console.log(ICONS.success, `Added \`${Object.keys(missingKeys).length}\` missing keys to **${locale}** markdown snapshot.`)
             }
 
             const prunedInThisRun = args.prune && Object.keys(unusedKeys).length > 0
@@ -237,26 +246,32 @@ export default defineCommand({
                 delete targetUnits[key]
 
               fs.writeFileSync(targetSnapshotPath, JSON.stringify(targetUnits, null, 2), 'utf-8')
-              console.log(ICONS.success, `Removed \`${Object.keys(unusedKeys).length}\` unused keys from **${locale}** markdown snapshot.`)
+              if (!args.silent)
+                console.log(ICONS.success, `Removed \`${Object.keys(unusedKeys).length}\` unused keys from **${locale}** markdown snapshot.`)
             }
 
-            if (!fixedInThisRun && !prunedInThisRun && !sourceWasModified) {
+            if (!fixedInThisRun && !prunedInThisRun && !sourceWasModified && !args.silent) {
               if (Object.keys(missingKeys).length === 0 && Object.keys(unusedKeys).length === 0) {
                 if (!args.silent)
                   console.log(ICONS.success, `Markdown for **${locale}** is up to date.`)
               }
               else {
-                if (Object.keys(missingKeys).length > 0)
-                  console.log(ICONS.warning, `Markdown for **${locale}** is missing \`${Object.keys(missingKeys).length}\` keys.`)
+                if (Object.keys(missingKeys).length > 0) {
+                  if (!args.silent)
+                    console.log(ICONS.warning, `Markdown for **${locale}** is missing \`${Object.keys(missingKeys).length}\` keys.`)
+                }
 
-                if (Object.keys(unusedKeys).length > 0)
-                  console.log(ICONS.warning, `Markdown for **${locale}** has \`${Object.keys(unusedKeys).length}\` unused keys.`)
+                if (Object.keys(unusedKeys).length > 0) {
+                  if (!args.silent)
+                    console.log(ICONS.warning, `Markdown for **${locale}** has \`${Object.keys(unusedKeys).length}\` unused keys.`)
+                }
               }
             }
           }
 
           if (hasIssues && !args.fix && !args.prune) {
-            console.log(ICONS.info, `Run with \`--fix\` to add missing translations or \`--prune\` to remove unused ones.`)
+            if (!args.silent)
+              console.log(ICONS.info, `Run with \`--fix\` to add missing translations or \`--prune\` to remove unused ones.`)
             process.exitCode = 1
           }
         }
@@ -376,7 +391,7 @@ export default defineCommand({
             }
 
             if (!args.fix) {
-              console.log(ICONS.error, 'Missing keys detected. Run with --fix to add empty keys.')
+              console.log(ICONS.error, 'Missing keys detected. Run with `--fix` to add empty keys.')
               process.exitCode = 1
               return
             }
@@ -545,7 +560,7 @@ export default defineCommand({
             if (args.silent)
               console.log('\nKey issues detected. Run with --fix to add missing keys or --prune to delete them.')
             else
-              console.log(ICONS.info, 'Key issues detected. Run with --fix to add missing keys or --prune to delete them.')
+              console.log(ICONS.info, 'Key issues detected. Run with `--fix` to add missing keys or `--prune` to delete them.')
             process.exitCode = 1
           }
         }

@@ -56,9 +56,6 @@ export const DEFAULT_CONFIG = {
     input: ['src/**/*.{js,jsx,ts,tsx,vue,svelte,astro}'],
   },
   adapters: {
-    json: {
-      directory: 'locales',
-    },
     markdown: {
       files: [],
     },

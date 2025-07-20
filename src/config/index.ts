@@ -114,8 +114,52 @@ export async function resolveConfig(
     { arrayMerge: (_t, s) => s },
   ) as DeepRequired<ConfigTypes.ResolvedConfig>
 
-  if (finalMergedConfig.adapter === 'all')
-    finalMergedConfig.adapter = Object.keys(finalMergedConfig.adapters)
+  const isJsonConfigured = !!finalMergedConfig.adapters.json?.directory
+  const isMarkdownConfigured = !!finalMergedConfig.adapters.markdown?.files?.length
+  const configuredAdapters = [
+    ...(isJsonConfigured ? ['json'] as const : []),
+    ...(isMarkdownConfigured ? ['markdown'] as const : []),
+  ]
+
+  const normalize = (a: string) => {
+    if (a === 'md' || a === 'mdx')
+      return 'markdown'
+    if (a === 'j')
+      return 'json'
+    return a
+  }
+  let requestedAdapters = (
+    Array.isArray(finalMergedConfig.adapter) ? finalMergedConfig.adapter : [finalMergedConfig.adapter]
+  ).map(normalize)
+
+  if (requestedAdapters.includes('all')) {
+    requestedAdapters = configuredAdapters
+    if (requestedAdapters.length === 0)
+      handleCliError('No adapters are configured.', 'Please configure at least one adapter in your lin.config.ts.')
+  }
+
+  const knownAdapters = ['json', 'markdown'] as const
+  for (const adapterId of requestedAdapters) {
+    if (!knownAdapters.includes(adapterId as any))
+      handleCliError(`Invalid adapter: "${adapterId}"`, `Valid adapters are: ${knownAdapters.join(', ')}.`)
+
+    if (!configuredAdapters.includes(adapterId as any)) {
+      if (adapterId === 'json') {
+        handleCliError(
+          `The 'json' adapter is not configured.`,
+          `Please add a 'directory' property for it in your lin.config.ts.`,
+        )
+      }
+      if (adapterId === 'markdown') {
+        handleCliError(
+          `The 'markdown' adapter is not configured.`,
+          `Please add a 'files' array for it in your lin.config.ts.`,
+        )
+      }
+    }
+  }
+
+  finalMergedConfig.adapter = requestedAdapters
 
   const isSvelteProject = finalMergedConfig.integration === 'svelte' || finalMergedConfig.parser.input.some(glob => glob.includes('.svelte'))
   const hasCustomSvelteLexer = loadedFromFileConfig.parser?.lexers?.svelte
@@ -136,28 +180,6 @@ export async function resolveConfig(
 
   const { provider, model } = finalMergedConfig.options
   const modelsForProvider = ConfigConstants.availableModels[provider as ConfigTypes.Provider] || []
-
-  const intendedAdapter = loadedFromFileConfig.adapter || cliProvidedArgs.adapter || ConfigConstants.DEFAULT_CONFIG.adapter
-  const adaptersToCheck = Array.isArray(intendedAdapter) ? intendedAdapter : [intendedAdapter]
-  const validAdapters = Object.keys(finalMergedConfig.adapters)
-
-  for (const adapterId of adaptersToCheck) {
-    if (adapterId !== 'all' && !validAdapters.includes(adapterId))
-      handleCliError(`Invalid adapter: "${adapterId}"`, `Valid adapters are: ${validAdapters.join(', ')}.`)
-  }
-
-  if (intendedAdapter !== 'all') {
-    for (const adapterId of adaptersToCheck) {
-      if (adapterId === 'markdown') {
-        if (!finalMergedConfig.adapters.markdown || finalMergedConfig.adapters.markdown.files.length === 0) {
-          handleCliError(
-            `The 'markdown' adapter is not configured.`,
-            `Please add a 'files' array for it in your lin.config.ts.`,
-          )
-        }
-      }
-    }
-  }
 
   if (provider !== 'azure' && !modelsForProvider.some(m => m.value === model)) {
     handleCliError(

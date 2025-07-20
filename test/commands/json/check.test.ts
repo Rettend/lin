@@ -10,7 +10,7 @@ import * as configModule from '@/config'
 import * as i18nConfigModule from '@/config/i18n'
 import * as utilsModule from '@/utils'
 import * as consoleModule from '@/utils/console'
-import { baseArgsToRun, createVfsHelpers, mockI18nConfigResult, mockResolvedConfig } from '../test-helpers'
+import { baseArgsToRun, createVfsHelpers, mockI18nConfigResult, mockResolvedConfig } from '../../test-helpers'
 
 const actualNodePath = await vi.importActual<typeof path>('node:path')
 const actualUtils = await vi.importActual<typeof utilsModule>('@/utils')
@@ -94,7 +94,7 @@ vi.mock('picocolors', () => ({
   },
 }))
 
-describe('check command', () => {
+describe('check command (JSON)', () => {
   let mockReadFileSync: MockedFunction<typeof fs.readFileSync>
   let mockWriteFileSync: MockedFunction<typeof fs.writeFileSync>
   let mockExistsSync: MockedFunction<typeof fs.existsSync>
@@ -303,7 +303,7 @@ describe('check command', () => {
 
       expect(mockConsoleLog).toHaveBeenCalledWith(consoleModule.ICONS.warning, 'Locale **es-ES** is missing `2` keys')
       expect(mockConsoleLog).toHaveBeenCalledWith(consoleModule.ICONS.note, 'Samples: `b`, `c.d`')
-      expect(mockConsoleLog).toHaveBeenCalledWith(consoleModule.ICONS.error, 'Missing keys detected. Run with --fix to add empty keys.')
+      expect(mockConsoleLog).toHaveBeenCalledWith(consoleModule.ICONS.error, 'Missing keys detected. Run with `--fix` to add empty keys.')
       expect(process.exitCode).toBe(1)
       expect(mockWriteFileSync).not.toHaveBeenCalled()
     })

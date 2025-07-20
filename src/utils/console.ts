@@ -9,7 +9,7 @@ export const ICONS = {
   error: c.red('✖'),
   warning: c.yellow('⚠'),
   info: c.blue('ℹ'),
-  note: c.magenta('✎'),
+  note: c.dim('●'),
   result: c.cyan('>.. '),
 }
 
