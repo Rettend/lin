@@ -15,38 +15,70 @@ describe('config with adapters', () => {
       sources: [],
     })
 
-  it('should handle adapters config from file correctly', async () => {
+  it('should correctly merge file and CLI adapter configs', async () => {
     const mockedLoadI18nConfig = mockLoadI18n()
 
-    const rawConfig = {
+    const fileConfig = {
       adapters: {
-        json: {
-          sort: 'abc',
-        },
-        markdown: {
-          files: ['**/*.md'],
-        },
+        json: { sort: 'abc' },
+        markdown: { files: ['**/*.md'] },
       },
     }
 
-    const { config } = await resolveConfig(rawConfig)
+    // Simulate providing CLI args
+    const { config } = await resolveConfig({
+      ...fileConfig,
+      adapter: 'markdown', // User CLI override
+    })
 
-    expect(config.adapters).toBeDefined()
     expect(config.adapters.json).toEqual({ sort: 'abc' })
     expect(config.adapters.markdown).toEqual({ files: ['**/*.md'] })
-    expect(config.adapter).toBeUndefined()
+    expect(config.adapter).toEqual('markdown')
 
     mockedLoadI18nConfig.mockRestore()
   })
 
-  it('should correctly parse the --adapter CLI argument', async () => {
+  it('should expand "all" to the list of configured adapters', async () => {
+    const mockedLoadI18nConfig = mockLoadI18n()
+
+    const fileConfig = {
+      adapters: {
+        json: {},
+        markdown: {},
+        yaml: {},
+      },
+      adapter: 'all', // This could be from file or default
+    }
+
+    const { config } = await resolveConfig(fileConfig)
+
+    expect(config.adapter).toEqual(['json', 'markdown', 'yaml'])
+
+    mockedLoadI18nConfig.mockRestore()
+  })
+
+  it('should handle an array of adapters from the CLI', async () => {
     const mockedLoadI18nConfig = mockLoadI18n()
 
     const { config } = await resolveConfig({ adapter: ['json', 'markdown'] })
 
-    expect(config.adapter).toBeDefined()
     expect(config.adapter).toEqual(['json', 'markdown'])
+    // Ensure default adapters are still populated even if not in CLI
     expect(config.adapters.json).toBeDefined()
+    expect(config.adapters.markdown).toBeDefined()
+
+    mockedLoadI18nConfig.mockRestore()
+  })
+
+  it('should use "all" if adapter CLI arg is an empty array', async () => {
+    const mockedLoadI18nConfig = mockLoadI18n()
+
+    const { config } = await resolveConfig({
+      adapter: [],
+      adapters: { json: {}, markdown: {} },
+    })
+
+    expect(config.adapter).toEqual(['json', 'markdown'])
 
     mockedLoadI18nConfig.mockRestore()
   })

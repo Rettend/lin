@@ -2,7 +2,6 @@
   "compilerOptions": {
     "target": "ESNext",
     "jsx": "react-jsx",
-    // Enable latest features
     "lib": [
       "ESNext",
       "DOM"
@@ -10,7 +9,6 @@
     "moduleDetection": "force",
     "baseUrl": ".",
     "module": "ESNext",
-    // Bundler mode
     "moduleResolution": "bundler",
     "paths": {
       "@/*": [
@@ -19,7 +17,6 @@
     },
     "allowImportingTsExtensions": true,
     "allowJs": true,
-    // Best practices
     "strict": true,
     "noFallthroughCasesInSwitch": true,
     "noPropertyAccessFromIndexSignature": false,
@@ -34,6 +31,7 @@
     "node_modules",
     "dist",
     "coverage",
-    "src/parsers/template"
+    "src/parsers/template",
+    "docs/**/*"
   ]
 }

@@ -18,8 +18,12 @@ export function normalizeArgs(inputArgs: Record<string, any>): Partial<Config> {
   if (inputArgs.with !== undefined)
     outputConfig.with = inputArgs.with
 
-  if (inputArgs.adapter !== undefined)
-    outputConfig.adapter = inputArgs.adapter
+  if (inputArgs.adapter !== undefined) {
+    if (Array.isArray(inputArgs.adapter))
+      outputConfig.adapter = inputArgs.adapter.length > 0 ? inputArgs.adapter : 'all'
+    else
+      outputConfig.adapter = inputArgs.adapter || 'all'
+  }
 
   if (inputArgs.batchSize !== undefined) {
     const bs = Number(inputArgs.batchSize)

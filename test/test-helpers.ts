@@ -11,9 +11,15 @@ export const mockResolvedConfig: DeepRequired<ResolvedConfig> = {
   batchSize: 10,
   undo: false,
   integration: '',
-  adapter: 'json',
+  adapter: ['json'],
   adapters: {
-    json: {},
+    json: {
+      sort: 'def',
+    },
+    markdown: {
+      files: ['**/*.md'],
+      localesDir: '.lin/markdown',
+    },
   },
   parser: {
     input: ['src/**/*.{js,jsx,ts,tsx,vue,svelte,astro}'],

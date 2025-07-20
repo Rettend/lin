@@ -15,6 +15,13 @@ export default defineCommand({
   },
   async run({ args }) {
     const { config } = await resolveConfig(args)
+
+    // TODO: undo only supports the json adapter.
+    if (config.adapter !== 'json' && !config.adapter.includes('json')) {
+      console.log(ICONS.warning, 'The `undo` command currently only works with the `json` adapter.')
+      return
+    }
+
     const undoFilepath = path.join(config.cwd, UNDO_DIR, UNDO_FILE)
 
     if (!fs.existsSync(undoFilepath)) {

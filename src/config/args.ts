@@ -31,6 +31,7 @@ export const commonArgs = {
     alias: 'a',
     type: 'string',
     description: 'the adapter(s) to use',
+    default: 'all',
   },
   undo: {
     type: 'boolean',

@@ -119,6 +119,7 @@ export interface JsonAdapterConfig {
 export interface MarkdownAdapterConfig {
   files: string[]
   localesDir?: string
+  output?: string
 }
 
 export interface LinConfig {

@@ -1,6 +1,7 @@
 import type { LocaleJson } from '../utils'
 import fs from 'node:fs'
 import { defineCommand } from 'citty'
+import { allAdapters } from '@/engine'
 import { allArgs, resolveConfig } from '../config'
 import { loadI18nConfig } from '../config/i18n'
 import { console, findNestedKey, ICONS, normalizeLocales, provideSuggestions, r } from '../utils'
@@ -22,55 +23,67 @@ export default defineCommand({
   },
   async run({ args }) {
     const { config } = await resolveConfig(args)
-    const { i18n } = await loadI18nConfig(config as any)
 
-    const keys = args._ as string[]
-    if (keys.length === 1) {
-      const defaultLocaleJson = JSON.parse(fs.readFileSync(r(`${i18n.defaultLocale}.json`, i18n), { encoding: 'utf8' })) as LocaleJson
-      if (provideSuggestions(defaultLocaleJson, keys[0]))
-        return
-    }
+    const adaptersToRun = Array.isArray(config.adapter) ? config.adapter : [config.adapter]
 
-    let locales = typeof args.locale === 'string' ? [args.locale] : args.locale || []
-    locales = normalizeLocales(locales, i18n)
-    const localesToCheck = locales.length > 0 ? locales : i18n.locales
+    for (const adapterId of adaptersToRun) {
+      const adapter = allAdapters[adapterId as keyof typeof allAdapters]
+      if (!adapter || !adapter.supportedCommands?.includes('del')) {
+        if (config.debug)
+          console.log(ICONS.info, `Skipping adapter **${adapterId}** for command \`del\`.`)
+        continue
+      }
 
-    const filesToModify = localesToCheck.map(locale => r(`${locale}.json`, i18n))
-    saveUndoState(filesToModify, config as any)
+      const { i18n } = await loadI18nConfig(config as any)
 
-    const deletedKeysByLocale: Record<string, string[]> = {}
+      const keys = args._ as string[]
+      if (keys.length === 1) {
+        const defaultLocaleJson = JSON.parse(fs.readFileSync(r(`${i18n.defaultLocale}.json`, i18n), { encoding: 'utf8' })) as LocaleJson
+        if (provideSuggestions(defaultLocaleJson, keys[0]))
+          return
+      }
 
-    for (const locale of localesToCheck) {
-      const localeJson = JSON.parse(fs.readFileSync(r(`${locale}.json`, i18n), { encoding: 'utf8' })) as LocaleJson
+      let locales = typeof args.locale === 'string' ? [args.locale] : args.locale || []
+      locales = normalizeLocales(locales, i18n)
+      const localesToCheck = locales.length > 0 ? locales : i18n.locales
 
-      for (const key of keys) {
-        const nestedKey = findNestedKey(localeJson, key.trim())
-        if (nestedKey.value !== undefined) {
-          nestedKey.delete()
+      const filesToModify = localesToCheck.map(locale => r(`${locale}.json`, i18n))
+      saveUndoState(filesToModify, config as any)
 
-          if (!deletedKeysByLocale[locale])
-            deletedKeysByLocale[locale] = []
+      const deletedKeysByLocale: Record<string, string[]> = {}
 
-          deletedKeysByLocale[locale].push(key)
-          fs.writeFileSync(r(`${locale}.json`, i18n), `${JSON.stringify(localeJson, null, 2)}\n`, { encoding: 'utf8' })
-        }
-        else {
-          console.log(ICONS.info, `Skipped: **${locale}** *(key \`${key}\` not found)*`)
+      for (const locale of localesToCheck) {
+        const localeJson = JSON.parse(fs.readFileSync(r(`${locale}.json`, i18n), { encoding: 'utf8' })) as LocaleJson
+
+        for (const key of keys) {
+          const nestedKey = findNestedKey(localeJson, key.trim())
+          if (nestedKey.value !== undefined) {
+            nestedKey.delete()
+
+            if (!deletedKeysByLocale[locale])
+              deletedKeysByLocale[locale] = []
+
+            deletedKeysByLocale[locale].push(key)
+            fs.writeFileSync(r(`${locale}.json`, i18n), `${JSON.stringify(localeJson, null, 2)}\n`, { encoding: 'utf8' })
+          }
+          else {
+            console.log(ICONS.info, `Skipped: **${locale}** *(key \`${key}\` not found)*`)
+          }
         }
       }
-    }
 
-    const deletedLocalesByKey: Record<string, string[]> = {}
+      const deletedLocalesByKey: Record<string, string[]> = {}
 
-    for (const locale in deletedKeysByLocale) {
-      for (const key of deletedKeysByLocale[locale]) {
-        if (!deletedLocalesByKey[key])
-          deletedLocalesByKey[key] = []
-        deletedLocalesByKey[key].push(locale)
+      for (const locale in deletedKeysByLocale) {
+        for (const key of deletedKeysByLocale[locale]) {
+          if (!deletedLocalesByKey[key])
+            deletedLocalesByKey[key] = []
+          deletedLocalesByKey[key].push(locale)
+        }
       }
-    }
 
-    for (const key of Object.keys(deletedLocalesByKey))
-      console.log(ICONS.success, `Deleted key \`${key}\` from ${deletedLocalesByKey[key].map(l => `**${l}**`).join(', ')}`)
+      for (const key of Object.keys(deletedLocalesByKey))
+        console.log(ICONS.success, `Deleted key \`${key}\` from ${deletedLocalesByKey[key].map(l => `**${l}**`).join(', ')}`)
+    }
   },
 })

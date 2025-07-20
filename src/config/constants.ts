@@ -33,6 +33,7 @@ export const DEFAULT_CONFIG = {
   cwd: process.cwd(),
   debug: false,
   undo: true,
+  adapter: 'all',
 
   context: '',
   integration: '',
@@ -82,6 +83,7 @@ export const availableModels = {
     { value: 'gemini-2.5-flash-lite-preview-06-17', alias: 'Gemini 2.5 Flash Lite', iq: 3, speed: 5 },
   ],
   xai: [
+    { value: 'grok-4', alias: 'Grok 4', iq: 5, speed: 1 },
     { value: 'grok-3', alias: 'Grok 3', iq: 4, speed: 4 },
     { value: 'grok-3-mini', alias: 'Grok 3 mini', iq: 3, speed: 4 },
     { value: 'grok-3-fast', alias: 'Grok 3 fast', iq: 4, speed: 4 },
@@ -95,6 +97,7 @@ export const availableModels = {
     { value: 'open-mistral-7b', alias: 'Open Mistral 7B', iq: 1, speed: 4 },
   ],
   groq: [
+    { value: 'moonshotai/kimi-k2-instruct', alias: 'Kimi K2', iq: 4, speed: 5 },
     { value: 'deepseek-r1-distill-llama-70b', alias: 'DeepSeek R1 Distill Llama 70B', iq: 3, speed: 4 },
     { value: 'qwen-qwq-32b', alias: 'QwQ 32B', iq: 3, speed: 3 },
     { value: 'meta-llama/llama-4-maverick-17b-128e-instruct', alias: 'Llama 4 Maverick', iq: 3, speed: 5 },

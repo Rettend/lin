@@ -158,6 +158,16 @@ describe('llm utils', () => {
       cwd: '/mock',
       debug: false,
       undo: false,
+      adapter: ['json'],
+      adapters: {
+        json: {
+          sort: 'def',
+        },
+        markdown: {
+          files: ['**/*.md'],
+          localesDir: '.lin/markdown',
+        },
+      },
       context: 'Test context about the project.',
       with: 'none',
       batchSize: 10,

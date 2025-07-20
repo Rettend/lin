@@ -22,6 +22,10 @@ export default defineConfig({
       model: 'DeepSeek-R1-0528',
       mode: 'custom',
     },
+    'kimi': {
+      provider: 'groq',
+      model: 'moonshotai/kimi-k2-instruct',
+    },
     'fast-ds': {
       provider: 'groq',
       model: 'deepseek-r1-distill-llama-70b',

@@ -2,15 +2,13 @@
 title: Integrations
 description: How lin automatically detects your i18n setup.
 ---
-import { Aside } from '@astrojs/starlight/components';
-import { integrations } from '@rttnd/lin';
 
 `lin` will try to automatically detect your i18n configuration from your existing project setup.
 If that fails, just use `lin.config.ts` or `i18n.config.ts`.
 
 To force it to use a specific integration, use the `integration` option in your `lin.config.ts` or the `--integration` (`-i`) flag.
 
-Supported integrations: 
+Supported integrations:
 
     - i18next (`i18next-parser.config.js`)
     - Next.js (`next.config.js`)

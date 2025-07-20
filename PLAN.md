@@ -28,7 +28,9 @@ All commands (`check`, `sync`, `translate`, …) will:
 
 ```
 JSON     | ✓ All locales up-to-date (13 keys)
+         | ...
 Markdown | ⚠  4 missing keys → translating…  ✓ done
+         | ...
 ```
 
 ---
@@ -45,8 +47,8 @@ export default defineConfig({
       /** keep current defaults, plus future knobs like `sort: 'abc'` */
     },
     markdown: {
-      files: ['docs/**/*.mdx'],      // moved from top-level markdown.files
-      localesDir: '.lin/markdown',   // moved from markdown.localesDir
+      files: ['docs/**/*.mdx'], // moved from top-level markdown.files
+      localesDir: '.lin/markdown', // moved from markdown.localesDir
     },
     // yaml: { … }
   },
@@ -60,15 +62,15 @@ export default defineConfig({
 
 ### 2.2 CLI Args
 
-* New shared flag `--adapter (-A)` accepting comma-separated list or `all` (default).
+* New shared flag `--adapter (-a)` accepting an adapter (can be used multiple times, citty automatically handles that, so like `-a json -a md`) or `all` (default).
 * Commands that previously accepted `--locale`, `--with`, etc. keep them – they act **inside** each adapter.
 
 Examples:
 
 ```
 lin sync                    # all adapters
-lin sync -A json            # only json
-lin translate -A markdown   # markdown only
+lin sync -a json            # only json
+lin translate -a md   # markdown only
 ```
 
 ---
@@ -79,7 +81,7 @@ lin translate -A markdown   # markdown only
 
    ```ts
    export interface AdapterContext {
-     config: DeepRequired<ResolvedConfig>  // full config
+     config: DeepRequired<ResolvedConfig> // full config
      i18n: I18nConfig
    }
    ```
@@ -104,6 +106,9 @@ lin translate -A markdown   # markdown only
 
 4. **Update Commands**
    * Introduce `for (const adapterId of selectedAdapters)` loops in `check`, `sync`, `translate`, etc.
+   * **Gate commands by adapter support.** Not all adapters will support all commands. For example, `add` and `edit` make sense for key-value formats like JSON but not for content-based formats like Markdown.
+       * Each adapter will export a `supportedCommands` array.
+       * Commands will check this list and skip or warn for unsupported adapters.
    * Preserve current JSON behaviour by implementing a `json` engine that simply proxies existing logic.
 
 5. **Console Grouping Utility** – helper in `utils/console.ts`:
