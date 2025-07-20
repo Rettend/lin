@@ -1,5 +1,5 @@
 {
-  "name": "@yuo-app/lin",
+  "name": "@rttnd/lin",
   "type": "module",
   "version": "2.1.0",
   "workspaces": [
@@ -8,13 +8,13 @@
   "packageManager": "bun@1.2.16",
   "description": "auto-i18n",
   "license": "MIT",
-  "homepage": "https://github.com/yuo-app/lin#readme",
+  "homepage": "https://github.com/Rettend/lin#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yuo-app/lin.git"
+    "url": "git+https://github.com/Rettend/lin.git"
   },
   "bugs": {
-    "url": "https://github.com/yuo-app/lin/issues"
+    "url": "https://github.com/Rettend/lin/issues"
   },
   "keywords": [
     "i18n",
@@ -67,15 +67,23 @@
     "deepmerge": "^4.3.1",
     "dotenv": "^16.5.0",
     "glob": "^11.0.3",
+    "gray-matter": "^4.0.3",
     "i18next-parser": "^9.3.0",
     "picocolors": "^1.1.1",
+    "remark": "^15.0.1",
+    "remark-mdx": "^3.1.0",
+    "remark-parse": "^11.0.0",
+    "remark-stringify": "^11.0.0",
     "unconfig": "^7.3.2",
+    "unified": "^11.0.5",
+    "unist-util-visit": "^5.0.0",
     "zod": "^3.25.67"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^4.14.1",
     "@types/bun": "latest",
     "@types/glob": "^8.1.0",
+    "@types/mdast": "^4.0.4",
     "@vitest/coverage-istanbul": "^3.2.4",
     "@vitest/coverage-v8": "^3.2.4",
     "@vitest/ui": "^3.2.4",
