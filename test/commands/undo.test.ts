@@ -78,8 +78,8 @@ describe('undo command', () => {
   })
 
   it('should restore files from the undo state and delete the undo file', async () => {
-    const localeFilePath1 = path.join(mockResolvedConfig.i18n.directory, 'en-US.json').replace(/\\/g, '/')
-    const localeFilePath2 = path.join(mockResolvedConfig.i18n.directory, 'es-ES.json').replace(/\\/g, '/')
+    const localeFilePath1 = path.join(mockResolvedConfig.adapters.json?.directory || '', 'en-US.json').replace(/\\/g, '/')
+    const localeFilePath2 = path.join(mockResolvedConfig.adapters.json?.directory || '', 'es-ES.json').replace(/\\/g, '/')
 
     const originalContent1 = { greeting: 'Hello' }
     const stringifiedOriginalContent1 = JSON.stringify(originalContent1, null, 2)

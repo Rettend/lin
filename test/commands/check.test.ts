@@ -72,6 +72,9 @@ vi.mock('@/utils/console', async () => {
       log: vi.fn(),
       logL: vi.fn(),
       loading: vi.fn((_message: string, callback: () => Promise<any>) => callback()),
+      section: vi.fn(async (_title: string, callback: () => Promise<any>) => {
+        return await callback()
+      }),
     },
     ICONS: actual.ICONS,
   }
@@ -85,6 +88,7 @@ vi.mock('picocolors', () => ({
     green: vi.fn(str => `green(${str})`),
     yellow: vi.fn(str => `yellow(${str})`),
     blue: vi.fn(str => `blue(${str})`),
+    magenta: vi.fn(str => `magenta(${str})`),
     italic: vi.fn(str => `italic(${str})`),
     underline: vi.fn(str => `underline(${str})`),
   },

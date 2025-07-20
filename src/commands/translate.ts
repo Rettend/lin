@@ -35,7 +35,7 @@ export default defineCommand({
     const { config } = await resolveConfig(args)
 
     if (config.undo) {
-      const localeFiles = config.i18n.locales.map(locale => r(`${locale}.json`, config.i18n))
+      const localeFiles = config.i18n.locales.map(locale => r(`${locale}.json`, config))
       saveUndoState(localeFiles, config as any)
     }
 

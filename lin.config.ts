@@ -4,7 +4,14 @@ export default defineConfig({
   i18n: {
     locales: ['en-US', 'hu-HU', 'ko-KR'],
     defaultLocale: 'en-US',
-    directory: './locales',
+  },
+  adapters: {
+    json: {
+      directory: './locales',
+    },
+    markdown: {
+      files: ['docs/src/content/**/*.md', 'docs/src/content/**/*.mdx'],
+    },
   },
   with: 'tgt',
   options: {

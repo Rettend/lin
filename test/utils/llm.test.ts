@@ -162,6 +162,7 @@ describe('llm utils', () => {
       adapters: {
         json: {
           sort: 'def',
+          directory: 'locales',
         },
         markdown: {
           files: ['**/*.md'],
@@ -170,7 +171,11 @@ describe('llm utils', () => {
       },
       context: 'Test context about the project.',
       with: 'none',
-      batchSize: 10,
+      limits: {
+        locale: 10,
+        key: 50,
+        char: 4000,
+      },
       integration: '',
       parser: {
         input: ['src/**/*.{js,jsx,ts,tsx,vue,svelte,astro}'],
@@ -178,7 +183,6 @@ describe('llm utils', () => {
       i18n: {
         locales: ['en-US', 'es-ES', 'fr-FR'],
         defaultLocale: 'en-US',
-        directory: 'locales',
       },
       options: {
         provider: 'openai',
@@ -198,7 +202,6 @@ describe('llm utils', () => {
     const mockI18n: I18nConfig = {
       locales: ['en-US', 'es-ES', 'fr-FR'],
       defaultLocale: 'en-US',
-      directory: 'locales',
     }
 
     const keysToTranslate: Record<string, LocaleJson> = {
@@ -230,14 +233,14 @@ describe('llm utils', () => {
       expect(result).toEqual(mockTranslatedJson)
       expect(mockCreateOpenAI).toHaveBeenCalledWith({ apiKey: 'test-api-key' })
       expect(mockLanguageModelFn).toHaveBeenCalledWith('gpt-4.1-mini')
-      expect(mockGenerateObject).toHaveBeenCalledOnce()
+      expect(mockGenerateObject).toHaveBeenCalledTimes(2)
       const generateObjectCall = mockGenerateObject.mock.calls[0][0]
       expect(generateObjectCall.model).toEqual({})
       expect(generateObjectCall.schema).toBeDefined()
       expect(generateObjectCall.system).toContain('Example input')
       expect(generateObjectCall.system).toContain(`default locale (${mockI18n.defaultLocale})`)
       expect(generateObjectCall.system).toContain(mockConfigBase.context)
-      expect(generateObjectCall.prompt).toBe(JSON.stringify(keysToTranslate))
+      expect(generateObjectCall.prompt).toBe(JSON.stringify({ 'es-ES': { greeting: 'Hello', farewell: 'Goodbye' } }))
       expect(generateObjectCall.temperature).toBe(mockConfigBase.options.temperature)
       expect(generateObjectCall.maxTokens).toBe(mockConfigBase.options.maxTokens)
       expect(generateObjectCall.topP).toBe(mockConfigBase.options.topP)
@@ -251,7 +254,7 @@ describe('llm utils', () => {
       const withLocaleJsons = { 'ja-JP': { common: { yes: 'はい' } } }
       await translateKeys(keysToTranslate, mockConfigBase, mockI18n, withLocaleJsons)
 
-      expect(mockGenerateObject).toHaveBeenCalledOnce()
+      expect(mockGenerateObject).toHaveBeenCalledTimes(2)
       const generateObjectCall = mockGenerateObject.mock.calls[0][0]
       expect(generateObjectCall.system).toContain(JSON.stringify(withLocaleJsons))
     })
@@ -259,7 +262,7 @@ describe('llm utils', () => {
     it('should exclude user context from system prompt if includeContext is false', async () => {
       await translateKeys(keysToTranslate, mockConfigBase, mockI18n, undefined)
 
-      expect(mockGenerateObject).toHaveBeenCalledOnce()
+      expect(mockGenerateObject).toHaveBeenCalledTimes(2)
       const generateObjectCall = mockGenerateObject.mock.calls[0][0]
       expect(generateObjectCall.system).toContain(mockConfigBase.context)
     })
@@ -307,7 +310,7 @@ describe('llm utils', () => {
       } as DeepRequired<Config>
       await translateKeys(keysToTranslate, testConfigWithEmptyApiKey, mockI18n)
       expect(mockCreateOpenAI).toHaveBeenCalledWith({})
-      expect(mockGenerateObject).toHaveBeenCalledOnce()
+      expect(mockGenerateObject).toHaveBeenCalledTimes(2)
     })
 
     it('should use openai provider when specified', async () => {
@@ -317,7 +320,7 @@ describe('llm utils', () => {
       await translateKeys(keysToTranslate, openAIConfig, mockI18n)
       expect(mockCreateOpenAI).toHaveBeenCalledWith({ apiKey: 'test-api-key' })
       expect(mockLanguageModelFn).toHaveBeenCalledWith('gpt-4.1-mini')
-      expect(mockGenerateObject).toHaveBeenCalledOnce()
+      expect(mockGenerateObject).toHaveBeenCalledTimes(2)
     })
 
     const providers: Provider[] = ['anthropic', 'google', 'xai', 'mistral', 'groq', 'cerebras']
@@ -346,7 +349,7 @@ describe('llm utils', () => {
         await translateKeys(keysToTranslate, providerConfig, mockI18n)
         expect(providerMocks[currentProvider]).toHaveBeenCalledWith({ apiKey: 'test-api-key' })
         expect(mockLanguageModelFn).toHaveBeenCalledWith(`test-${currentProvider}-model`)
-        expect(mockGenerateObject).toHaveBeenCalledOnce()
+        expect(mockGenerateObject).toHaveBeenCalledTimes(2)
         mockGenerateObject.mockClear()
         ;(providerMocks[currentProvider] as MockedFunction<any>).mockClear()
         mockLanguageModelFn.mockClear()
@@ -375,7 +378,7 @@ describe('llm utils', () => {
       await translateKeys(keysToTranslate, azureConfig, mockI18n)
       expect(mockCreateAzure).toHaveBeenCalledWith({ apiKey: 'azure-api-key', resourceName: 'my-resource', apiVersion: '2024-00-00', baseURL: 'https://default.azure.com' })
       expect(mockLanguageModelFn).toHaveBeenCalledWith('my-azure-deployment')
-      expect(mockGenerateObject).toHaveBeenCalledOnce()
+      expect(mockGenerateObject).toHaveBeenCalledTimes(2)
     })
 
     it('should use azure provider with baseURL, apiKey, and apiVersion, ignoring resourceName', async () => {
@@ -405,7 +408,7 @@ describe('llm utils', () => {
         resourceName: 'should-be-ignored',
       })
       expect(mockLanguageModelFn).toHaveBeenCalledWith('my-azure-deployment-2')
-      expect(mockGenerateObject).toHaveBeenCalledOnce()
+      expect(mockGenerateObject).toHaveBeenCalledTimes(2)
     })
 
     it('should use azure provider with only apiKey (relying on env vars for resourceName)', async () => {
@@ -430,7 +433,7 @@ describe('llm utils', () => {
       await translateKeys(keysToTranslate, azureConfig, mockI18n)
       expect(mockCreateAzure).toHaveBeenCalledWith({ apiKey: 'azure-api-key-env' })
       expect(mockLanguageModelFn).toHaveBeenCalledWith('env-based-deployment')
-      expect(mockGenerateObject).toHaveBeenCalledOnce()
+      expect(mockGenerateObject).toHaveBeenCalledTimes(2)
     })
 
     it('should handle unsupported provider', async () => {

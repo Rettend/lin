@@ -136,6 +136,29 @@ export async function resolveConfig(
 
   const { provider, model } = finalMergedConfig.options
   const modelsForProvider = ConfigConstants.availableModels[provider as ConfigTypes.Provider] || []
+
+  const intendedAdapter = loadedFromFileConfig.adapter || cliProvidedArgs.adapter || ConfigConstants.DEFAULT_CONFIG.adapter
+  const adaptersToCheck = Array.isArray(intendedAdapter) ? intendedAdapter : [intendedAdapter]
+  const validAdapters = Object.keys(finalMergedConfig.adapters)
+
+  for (const adapterId of adaptersToCheck) {
+    if (adapterId !== 'all' && !validAdapters.includes(adapterId))
+      handleCliError(`Invalid adapter: "${adapterId}"`, `Valid adapters are: ${validAdapters.join(', ')}.`)
+  }
+
+  if (intendedAdapter !== 'all') {
+    for (const adapterId of adaptersToCheck) {
+      if (adapterId === 'markdown') {
+        if (!finalMergedConfig.adapters.markdown || finalMergedConfig.adapters.markdown.files.length === 0) {
+          handleCliError(
+            `The 'markdown' adapter is not configured.`,
+            `Please add a 'files' array for it in your lin.config.ts.`,
+          )
+        }
+      }
+    }
+  }
+
   if (provider !== 'azure' && !modelsForProvider.some(m => m.value === model)) {
     handleCliError(
       `Model "${model}" not found for provider "${provider}".`,

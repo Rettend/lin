@@ -10,7 +10,6 @@ describe('config with adapters', () => {
       i18n: {
         locales: ['en', 'fr'],
         defaultLocale: 'en',
-        directory: 'locales',
       },
       sources: [],
     })
@@ -25,13 +24,12 @@ describe('config with adapters', () => {
       },
     }
 
-    // Simulate providing CLI args
     const { config } = await resolveConfig({
       ...fileConfig,
-      adapter: 'markdown', // User CLI override
+      adapter: 'markdown',
     })
 
-    expect(config.adapters.json).toEqual({ sort: 'abc' })
+    expect(config.adapters.json).toEqual({ directory: './locales', sort: 'abc' })
     expect(config.adapters.markdown).toEqual({ files: ['**/*.md'] })
     expect(config.adapter).toEqual('markdown')
 
@@ -47,7 +45,7 @@ describe('config with adapters', () => {
         markdown: {},
         yaml: {},
       },
-      adapter: 'all', // This could be from file or default
+      adapter: 'all',
     }
 
     const { config } = await resolveConfig(fileConfig)
@@ -63,7 +61,6 @@ describe('config with adapters', () => {
     const { config } = await resolveConfig({ adapter: ['json', 'markdown'] })
 
     expect(config.adapter).toEqual(['json', 'markdown'])
-    // Ensure default adapters are still populated even if not in CLI
     expect(config.adapters.json).toBeDefined()
     expect(config.adapters.markdown).toBeDefined()
 

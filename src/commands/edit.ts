@@ -41,7 +41,7 @@ export default defineCommand({
 
       const i18n = config.i18n
 
-      const defaultLocaleJson = JSON.parse(fs.readFileSync(r(`${i18n.defaultLocale}.json`, i18n), { encoding: 'utf8' }))
+      const defaultLocaleJson = JSON.parse(fs.readFileSync(r(`${i18n.defaultLocale}.json`, config), { encoding: 'utf8' }))
       if (provideSuggestions(defaultLocaleJson, args.key as string))
         return
 
@@ -58,7 +58,7 @@ export default defineCommand({
       const contentsToWrite: Record<string, string> = {}
 
       for (const locale of localesToCheck) {
-        const localeJsonPath = r(`${locale}.json`, i18n)
+        const localeJsonPath = r(`${locale}.json`, config)
         let localeJson: LocaleJson
         try {
           localeJson = JSON.parse(fs.readFileSync(localeJsonPath, { encoding: 'utf8' })) as LocaleJson

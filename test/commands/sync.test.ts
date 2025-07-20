@@ -486,7 +486,11 @@ describe('sync command', () => {
     setupVirtualFile('locales/de-DE.json', { greeting: 'Hallo' })
 
     const tempI18nConfig = { ...mockResolvedConfig.i18n, locales: ['en-US', 'es-ES', 'fr-FR', 'de-DE'] }
-    const tempConfig = { ...mockResolvedConfig, i18n: tempI18nConfig, batchSize: 1 }
+    const tempConfig = {
+      ...mockResolvedConfig,
+      i18n: tempI18nConfig,
+      limits: { ...mockResolvedConfig.limits, locale: 1 },
+    }
     ;(resolveConfig as Mock).mockResolvedValue({ config: tempConfig })
 
     mockTranslateKeys.mockImplementation(async (keysToTranslate) => {

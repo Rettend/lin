@@ -683,7 +683,11 @@ describe('add command', () => {
 
   it('should process locales in batches based on batchSize', async () => {
     const tempI18nConfig = { ...mockResolvedConfig.i18n, locales: ['en-US', 'es-ES', 'fr-FR'] }
-    const tempConfig = { ...mockResolvedConfig, i18n: tempI18nConfig, batchSize: 1 }
+    const tempConfig = {
+      ...mockResolvedConfig,
+      i18n: tempI18nConfig,
+      limits: { ...mockResolvedConfig.limits, locale: 1 },
+    }
     ;(resolveConfig as Mock).mockResolvedValue({ config: tempConfig })
 
     setupVirtualFile('locales/fr-FR.json', { existing: { key: 'Bonjour' } })

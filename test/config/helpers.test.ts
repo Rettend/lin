@@ -49,7 +49,7 @@ describe('normalizeArgs', () => {
   })
 
   it('should correctly handle the i18n object', () => {
-    const i18nConfig = { locales: ['de'], defaultLocale: 'de', directory: 'i18n' }
+    const i18nConfig = { locales: ['de'], defaultLocale: 'de' }
     const inputArgs = { i18n: i18nConfig }
     const result = normalizeArgs(inputArgs)
     expect(result.i18n).toEqual(i18nConfig)

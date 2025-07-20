@@ -8,12 +8,12 @@ export const mockResolvedConfig: DeepRequired<ResolvedConfig> = {
   debug: false,
   context: '',
   with: 'none',
-  batchSize: 10,
   undo: false,
   integration: '',
   adapter: ['json'],
   adapters: {
     json: {
+      directory: 'locales',
       sort: 'def',
     },
     markdown: {
@@ -27,7 +27,6 @@ export const mockResolvedConfig: DeepRequired<ResolvedConfig> = {
   i18n: {
     locales: ['en-US', 'es-ES'],
     defaultLocale: 'en-US',
-    directory: 'locales',
   },
   options: {
     provider: 'openai',
@@ -42,13 +41,17 @@ export const mockResolvedConfig: DeepRequired<ResolvedConfig> = {
     seed: 42,
   },
   presets: {},
+  limits: {
+    locale: 10,
+    key: 50,
+    char: 4000,
+  },
 }
 
 export const mockI18nConfigResult: { i18n: I18nConfig, sources: string[] } = {
   i18n: {
     locales: ['en-US', 'es-ES'],
     defaultLocale: 'en-US',
-    directory: 'locales',
   },
   sources: ['i18n.config.js'],
 }

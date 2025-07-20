@@ -9,13 +9,11 @@ import { handleCliError } from '../utils'
 export interface I18nConfig {
   locales: string[]
   defaultLocale: string
-  directory: string
 }
 
 export const DEFAULT_I18N_CONFIG: I18nConfig = {
   locales: [],
   defaultLocale: 'en-US',
-  directory: 'locales',
 }
 
 export async function loadI18nConfig(options?: Config): Promise<{ i18n: I18nConfig, sources: string[] }> {
@@ -29,7 +27,6 @@ export async function loadI18nConfig(options?: Config): Promise<{ i18n: I18nConf
         return {
           locales: resolved.i18n?.locales,
           defaultLocale: resolved.i18n?.defaultLocale,
-          directory: 'public/locales',
         }
       },
     },
@@ -43,7 +40,6 @@ export async function loadI18nConfig(options?: Config): Promise<{ i18n: I18nConf
           return {
             locales: resolved.i18n?.locales?.map((l: any) => l.code),
             defaultLocale: resolved.i18n?.defaultLocale,
-            directory: resolved.i18n?.langDir || 'locales',
           }
         }
         return resolved?.lin?.i18n
@@ -57,7 +53,6 @@ export async function loadI18nConfig(options?: Config): Promise<{ i18n: I18nConf
         return {
           locales: Object.keys(config.pluginOptions?.i18n?.locales || {}),
           defaultLocale: config.pluginOptions?.i18n?.locale,
-          directory: config.pluginOptions?.i18n?.localeDir || 'src/locales',
         }
       },
     },
@@ -69,7 +64,6 @@ export async function loadI18nConfig(options?: Config): Promise<{ i18n: I18nConf
         return {
           locales: config.locales,
           defaultLocale: config.defaultLocale,
-          directory: config.output?.replace(/\/\$LOCALE.*$/, '') || 'public/locales',
         }
       },
     },
@@ -87,16 +81,9 @@ export async function loadI18nConfig(options?: Config): Promise<{ i18n: I18nConf
         if (!project.i18n)
           return undefined
 
-        const localeFilePaths = project.i18n.locales ? Object.values(project.i18n.locales) : []
-        let directory = 'src/assets/i18n'
-
-        if (localeFilePaths.length > 0 && typeof localeFilePaths[0] === 'string')
-          directory = path.dirname(localeFilePaths[0])
-
         return {
           locales: project.i18n?.locales ? Object.keys(project.i18n.locales) : [],
           defaultLocale: project.i18n?.sourceLocale,
-          directory,
         }
       },
     },
@@ -111,7 +98,6 @@ export async function loadI18nConfig(options?: Config): Promise<{ i18n: I18nConf
         return {
           locales: resolved.i18n?.locales || [],
           defaultLocale: resolved.i18n?.defaultLocale || 'en',
-          directory: resolved.i18n?.directory || 'src/lib/i18n',
         }
       },
     },
@@ -125,7 +111,6 @@ export async function loadI18nConfig(options?: Config): Promise<{ i18n: I18nConf
         return {
           locales: config.intl?.locales || [],
           defaultLocale: config.intl?.defaultLocale || 'en-us',
-          directory: config.intl?.baseDir || 'translations',
         }
       },
     },
@@ -152,7 +137,6 @@ export async function loadI18nConfig(options?: Config): Promise<{ i18n: I18nConf
           return {
             locales,
             defaultLocale: i18nPlugin.options.defaultLang || 'en',
-            directory: 'i18n',
           }
         }
         return undefined
@@ -168,7 +152,6 @@ export async function loadI18nConfig(options?: Config): Promise<{ i18n: I18nConf
           return {
             locales: resolved.i18n?.locales || [],
             defaultLocale: resolved.i18n?.defaultLocale || 'en',
-            directory: resolved.i18n?.directory || 'public/locales',
           }
         }
         return resolved?.lin?.i18n
@@ -182,7 +165,6 @@ export async function loadI18nConfig(options?: Config): Promise<{ i18n: I18nConf
         return {
           locales: config.locales || [],
           defaultLocale: config.defaultLocale || 'en',
-          directory: 'public/locales',
         }
       },
     },
@@ -216,7 +198,6 @@ export async function loadI18nConfig(options?: Config): Promise<{ i18n: I18nConf
           return {
             locales: config.remix?.i18n?.locales || config.qwik?.i18n?.locales || [],
             defaultLocale: config.remix?.i18n?.defaultLocale || config.qwik?.i18n?.defaultLocale || 'en',
-            directory: config.remix?.i18n?.directory || config.qwik?.i18n?.directory || 'app/locales',
           }
         }
         return config?.lin?.i18n
@@ -232,7 +213,6 @@ export async function loadI18nConfig(options?: Config): Promise<{ i18n: I18nConf
           return {
             locales: resolved.i18n?.locales || [],
             defaultLocale: resolved.i18n?.defaultLocale || 'en',
-            directory: resolved.i18n?.directory || 'i18n',
           }
         }
         return resolved?.lin?.i18n

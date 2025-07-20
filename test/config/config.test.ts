@@ -46,7 +46,7 @@ describe('resolveConfig', () => {
     expect(config.context).toBe('')
     expect(config.i18n.locales).toEqual([])
     expect(config.i18n.defaultLocale).toEqual('en-US')
-    expect(config.i18n.directory).toEqual('locales')
+    expect(config.adapters?.json?.directory).toEqual('locales')
     expect(config.options.provider).toBe('openai')
     expect(config.options.model).toBe('gpt-4.1-mini')
     expect(config.options.temperature).toBe(0)
@@ -57,7 +57,6 @@ describe('resolveConfig', () => {
       i18n: {
         locales: ['hu-HU', 'fr-FR'],
         defaultLocale: 'hu-HU',
-        directory: 'locales',
       },
       sources: [],
     })
@@ -74,7 +73,7 @@ describe('resolveConfig', () => {
     expect(config.locale).toBe('')
     expect(config.i18n.locales).toEqual(['hu-HU', 'fr-FR'])
     expect(config.i18n.defaultLocale).toEqual('hu-HU')
-    expect(config.i18n.directory).toEqual('locales')
+    expect(config.adapters?.json?.directory).toEqual('locales')
     expect(config.context).toBe('Test context')
     expect(config.options.provider).toBe('anthropic')
     expect(config.options.model).toBe('claude-3-5-sonnet-latest')
@@ -87,7 +86,6 @@ describe('resolveConfig', () => {
       i18n: {
         locales: ['hu-HU', 'fr-FR'],
         defaultLocale: 'hu-HU',
-        directory: 'locales',
       },
       sources: [],
     })
@@ -107,7 +105,7 @@ describe('resolveConfig', () => {
     expect(config.locale).toBe('')
     expect(config.i18n.locales).toEqual(['hu-HU', 'fr-FR'])
     expect(config.i18n.defaultLocale).toEqual('hu-HU')
-    expect(config.i18n.directory).toEqual('locales')
+    expect(config.adapters?.json?.directory).toEqual('locales')
     expect(config.context).toBe('Test context')
     expect(config.options.provider).toBe('azure')
     expect(config.options.model).toBe('grok-3-mini')
@@ -144,7 +142,7 @@ describe('resolveConfig with presets', () => {
       throw new Error('handleCliError was called')
     })
     mockLoadI18nConfig.mockResolvedValue({
-      i18n: { locales: ['en-US'], defaultLocale: 'en-US', directory: 'locales' },
+      i18n: { locales: ['en-US'], defaultLocale: 'en-US' },
       sources: [],
     })
   })

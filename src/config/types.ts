@@ -114,6 +114,10 @@ export interface CommonConfig {
 
 export interface JsonAdapterConfig {
   sort?: 'abc' | 'def'
+  /**
+   * Directory containing locale JSON files. Defaults to 'locales'.
+   */
+  directory: string
 }
 
 export interface MarkdownAdapterConfig {
@@ -149,10 +153,28 @@ export interface LinConfig {
   with: 'none' | 'def' | 'tgt' | 'both' | 'all' | (string & {}) | string[]
 
   /**
-   * The number of locales to translate in a single batch.
-   * @default 10
+   * Configuration for batching translation requests.
    */
-  batchSize: number
+  limits: {
+    /**
+     * The number of locales to translate in a single batch.
+     * @default 10
+     */
+    locale: number
+
+    /**
+     * The number of keys to include in a single batch for translation.
+     * @default 50
+     */
+    key: number
+
+    /**
+     * The maximum number of characters for the values in a single batch.
+     * This is used as a proxy for token limit.
+     * @default 4000
+     */
+    char: number
+  }
 
   /**
    * LLM options
@@ -178,8 +200,9 @@ export interface LinConfig {
 export type Config = CommonConfig & LinConfig
 
 /**
- * Represents the configuration object after all sources (files, CLI, defaults)
- * have been merged and the i18n settings have been fully resolved.
+ * The resolved configuration object that is passed to most functions.
+ * It is a deep merge of the user's config file, CLI arguments, and defaults.
+ * The `i18n` property is guaranteed to be present.
  */
 export type ResolvedConfig = Omit<Config, 'i18n'> & { i18n: I18nConfig }
 

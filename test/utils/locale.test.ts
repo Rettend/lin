@@ -63,7 +63,6 @@ describe('locale utils', () => {
     const mockI18nConfig: I18nConfig = {
       locales: ['en-US', 'es-ES', 'fr-FR', 'ja-JP'],
       defaultLocale: 'en-US',
-      directory: 'locales',
     }
 
     it('should normalize short locale codes', () => {
@@ -262,7 +261,6 @@ describe('locale utils', () => {
     const mockI18nConfig: I18nConfig = {
       locales: ['en-US', 'es-ES', 'fr-FR', 'ja-JP'],
       defaultLocale: 'en-US',
-      directory: 'locales',
     }
     const targetLocales = ['es-ES', 'fr-FR']
 

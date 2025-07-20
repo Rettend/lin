@@ -38,7 +38,11 @@ export const DEFAULT_CONFIG = {
   context: '',
   integration: '',
   with: 'none',
-  batchSize: 10,
+  limits: {
+    locale: 10,
+    key: 50,
+    char: 4000,
+  },
 
   options: {
     provider: 'openai',
@@ -52,7 +56,9 @@ export const DEFAULT_CONFIG = {
     input: ['src/**/*.{js,jsx,ts,tsx,vue,svelte,astro}'],
   },
   adapters: {
-    json: {},
+    json: {
+      directory: 'locales',
+    },
     markdown: {
       files: [],
     },

@@ -13,11 +13,13 @@ import { createOpenAI } from '@ai-sdk/openai'
 import { createXai } from '@ai-sdk/xai'
 import { confirm } from '@clack/prompts'
 import { generateObject, wrapLanguageModel, zodSchema } from 'ai'
+import { merge } from 'lodash-es'
 import { z } from 'zod'
 import { availableModels, providers } from '../config'
 import { console, formatLog, ICONS } from './console'
 import { handleCliError } from './general'
-import { findMissingKeys, mergeMissingTranslations } from './locale'
+import { mergeMissingTranslations } from './locale'
+import { flattenObject } from './nested'
 
 export function sanitizeJsonString(jsonString: string): string {
   let processedString = jsonString
@@ -153,22 +155,79 @@ export async function translateKeys(
   i18n: I18nConfig,
   withLocaleJsons?: Record<string, LocaleJson>,
 ): Promise<Record<string, LocaleJson>> {
+  const allTranslatedKeys: Record<string, LocaleJson> = {}
+  const { key: keyBatchSize, char: charLimit } = config.limits
+
+  for (const locale of Object.keys(keysToTranslate)) {
+    const localeKeys = keysToTranslate[locale]
+    const flatKeys = Object.entries(flattenObject(localeKeys))
+    allTranslatedKeys[locale] = {}
+
+    let currentBatch: Record<string, any> = {}
+    let currentKeyCount = 0
+    let currentCharCount = 0
+
+    for (const [key, value] of flatKeys) {
+      const valueLength = value.toString().length
+
+      if (
+        currentKeyCount > 0
+        && (currentKeyCount + 1 > keyBatchSize || currentCharCount + valueLength > charLimit)
+      ) {
+        const translatedBatch = await translateSingleBatch(
+          { [locale]: currentBatch },
+          config,
+          i18n,
+          withLocaleJsons,
+        )
+        merge(allTranslatedKeys, translatedBatch)
+        currentBatch = {}
+        currentKeyCount = 0
+        currentCharCount = 0
+      }
+
+      currentBatch[key] = value
+      currentKeyCount++
+      currentCharCount += valueLength
+    }
+
+    if (currentKeyCount > 0) {
+      const translatedBatch = await translateSingleBatch(
+        { [locale]: currentBatch },
+        config,
+        i18n,
+        withLocaleJsons,
+      )
+      merge(allTranslatedKeys, translatedBatch)
+    }
+  }
+  return allTranslatedKeys
+}
+
+async function translateSingleBatch(
+  keysToTranslate: Record<string, LocaleJson>,
+  config: DeepRequired<Config>,
+  i18n: I18nConfig,
+  withLocaleJsons?: Record<string, LocaleJson>,
+): Promise<Record<string, LocaleJson>> {
   const keysForLlm: Record<string, LocaleJson> = {}
   const passthroughKeys: Record<string, LocaleJson> = {}
 
   for (const locale in keysToTranslate) {
-    const allKeys = findMissingKeys(keysToTranslate[locale], {})
+    const allKeys = keysToTranslate[locale]
     const nonEmpty: LocaleJson = {}
     const empty: LocaleJson = {}
     for (const key in allKeys) {
       if (allKeys[key])
-        nonEmpty[key] = allKeys[key] as string
+        nonEmpty[key] = allKeys[key]
       else
         empty[key] = ''
     }
     if (Object.keys(nonEmpty).length > 0)
       keysForLlm[locale] = nonEmpty
-    passthroughKeys[locale] = empty
+
+    if (Object.keys(empty).length > 0)
+      passthroughKeys[locale] = empty
   }
 
   if (Object.keys(keysForLlm).length === 0) {
@@ -252,6 +311,5 @@ Example output:
     else
       result[locale] = mergeMissingTranslations({}, passthroughKeys[locale])
   }
-
   return result as Record<string, LocaleJson>
 }

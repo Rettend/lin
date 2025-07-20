@@ -74,7 +74,6 @@ describe('loadI18nConfig', () => {
 
     expect(i18n.locales).toEqual(['en', 'fr'])
     expect(i18n.defaultLocale).toBe('en')
-    expect(i18n.directory).toBe('public/locales')
   })
 
   it('should load config from nuxt.config.js', async () => {
@@ -97,7 +96,6 @@ describe('loadI18nConfig', () => {
     const { i18n } = await loadI18nConfig()
     expect(i18n.locales).toEqual(['en', 'es'])
     expect(i18n.defaultLocale).toBe('en')
-    expect(i18n.directory).toBe('i18n/')
   })
 
   it('should load config from vue.config.js with localeDir', async () => {
@@ -120,7 +118,6 @@ describe('loadI18nConfig', () => {
     const { i18n } = await loadI18nConfig()
     expect(i18n.locales).toEqual(['de', 'at'])
     expect(i18n.defaultLocale).toBe('de')
-    expect(i18n.directory).toBe('translations')
   })
 
   it('should load config from vue.config.js without localeDir', async () => {
@@ -141,7 +138,6 @@ describe('loadI18nConfig', () => {
     const { i18n } = await loadI18nConfig()
     expect(i18n.locales).toEqual(['jp', 'kr'])
     expect(i18n.defaultLocale).toBe('jp')
-    expect(i18n.directory).toBe('src/locales')
   })
 
   it('should load config from i18next-parser.config.js with patterned output', async () => {
@@ -159,7 +155,6 @@ describe('loadI18nConfig', () => {
     const { i18n } = await loadI18nConfig()
     expect(i18n.locales).toEqual(['en-GB', 'en-US'])
     expect(i18n.defaultLocale).toBe('en-GB')
-    expect(i18n.directory).toBe('src/assets/locales')
   })
 
   it('should load config from angular.json', async () => {
@@ -186,7 +181,6 @@ describe('loadI18nConfig', () => {
     const { i18n } = await loadI18nConfig()
     expect(i18n.locales).toEqual(['fr', 'de'])
     expect(i18n.defaultLocale).toBe('en-US')
-    expect(i18n.directory).toBe('src/locale')
   })
 
   it('should handle no config being found by throwing an error', async () => {
@@ -212,7 +206,6 @@ describe('loadI18nConfig', () => {
     const { i18n } = await loadI18nConfig()
     expect(i18n.locales).toEqual(['en-AU', 'en-NZ'])
     expect(i18n.defaultLocale).toBe('en-AU')
-    expect(i18n.directory).toBe('translations/lin')
   })
 
   it('should load config from .linrc file', async () => {
@@ -232,7 +225,6 @@ describe('loadI18nConfig', () => {
     const { i18n } = await loadI18nConfig()
     expect(i18n.locales).toEqual(['ja-JP'])
     expect(i18n.defaultLocale).toBe('ja-JP')
-    expect(i18n.directory).toBe('lang')
   })
 
   it('should load config from package.json', async () => {
@@ -256,7 +248,6 @@ describe('loadI18nConfig', () => {
     const { i18n } = await loadI18nConfig()
     expect(i18n.locales).toEqual(['ko-KR', 'zh-CN'])
     expect(i18n.defaultLocale).toBe('ko-KR')
-    expect(i18n.directory).toBe('i18n-files')
   })
 
   it('should load config from vite.config.js', async () => {
@@ -279,7 +270,6 @@ describe('loadI18nConfig', () => {
     const { i18n } = await loadI18nConfig()
     expect(i18n.locales).toEqual(['sv-SE', 'nb-NO'])
     expect(i18n.defaultLocale).toBe('sv-SE')
-    expect(i18n.directory).toBe('international')
   })
 
   it('should load config from svelte.config.js', async () => {
@@ -299,7 +289,6 @@ describe('loadI18nConfig', () => {
     const { i18n } = await loadI18nConfig()
     expect(i18n.locales).toEqual(['sv', 'en'])
     expect(i18n.defaultLocale).toBe('sv')
-    expect(i18n.directory).toBe('src/lib/translations')
   })
 
   it('should load config from ember-cli-build.js', async () => {
@@ -319,7 +308,6 @@ describe('loadI18nConfig', () => {
     const { i18n } = await loadI18nConfig()
     expect(i18n.locales).toEqual(['de-DE', 'fr-FR'])
     expect(i18n.defaultLocale).toBe('de-DE')
-    expect(i18n.directory).toBe('ember-translations')
   })
 
   it('should load config from gatsby-config.js', async () => {
@@ -350,7 +338,6 @@ describe('loadI18nConfig', () => {
     const { i18n } = await loadI18nConfig({ cwd: '/test-project' } as any)
     expect(i18n.locales).toEqual(['en', 'fr'])
     expect(i18n.defaultLocale).toBe('en')
-    expect(i18n.directory).toBe('i18n')
     expect(fs.readFileSync).toHaveBeenCalledWith(expect.stringContaining(path.join('i18n', 'config.json')), 'utf8')
   })
 
@@ -371,7 +358,6 @@ describe('loadI18nConfig', () => {
     const { i18n } = await loadI18nConfig()
     expect(i18n.locales).toEqual(['pl', 'cs'])
     expect(i18n.defaultLocale).toBe('pl')
-    expect(i18n.directory).toBe('src/i18n')
   })
 
   it('should load config from package.json for Qwik', async () => {
@@ -393,7 +379,6 @@ describe('loadI18nConfig', () => {
     const { i18n } = await loadI18nConfig()
     expect(i18n.locales).toEqual(['it', 'pt'])
     expect(i18n.defaultLocale).toBe('it')
-    expect(i18n.directory).toBe('src/locales/qwik')
   })
 
   it('should load config from astro.config.mjs', async () => {
@@ -413,7 +398,6 @@ describe('loadI18nConfig', () => {
     const { i18n } = await loadI18nConfig()
     expect(i18n.locales).toEqual(['en-GB', 'en-AU'])
     expect(i18n.defaultLocale).toBe('en-GB')
-    expect(i18n.directory).toBe('src/astro-locales')
   })
 
   it('should load config from astro-i18next.config.mjs', async () => {
@@ -430,7 +414,6 @@ describe('loadI18nConfig', () => {
     const { i18n } = await loadI18nConfig()
     expect(i18n.locales).toEqual(['nl', 'be'])
     expect(i18n.defaultLocale).toBe('nl')
-    expect(i18n.directory).toBe('public/locales')
   })
 
   it('should load config from package.json for Remix', async () => {
@@ -452,7 +435,6 @@ describe('loadI18nConfig', () => {
     const { i18n } = await loadI18nConfig()
     expect(i18n.locales).toEqual(['fi', 'no'])
     expect(i18n.defaultLocale).toBe('fi')
-    expect(i18n.directory).toBe('app/translations')
   })
 
   it('should handle angular config with a different project name', async () => {
@@ -486,7 +468,6 @@ describe('loadI18nConfig', () => {
     const { i18n } = await loadI18nConfig()
     expect(i18n.locales).toEqual(['it'])
     expect(i18n.defaultLocale).toBe('de-DE')
-    expect(i18n.directory).toBe('src/locale')
   })
 
   it('should load i18n config from lin.config.ts when svelte.config.js is present but has no i18n block', async () => {
@@ -516,7 +497,6 @@ describe('loadI18nConfig', () => {
 
     expect(i18n.locales).toEqual(['en-US', 'fr-FR'])
     expect(i18n.defaultLocale).toBe('en-US')
-    expect(i18n.directory).toBe('i18n/locales')
     expect(sources[0]).toContain('lin.config.ts')
   })
 
@@ -525,8 +505,7 @@ describe('loadI18nConfig', () => {
     setupVirtualFile(path.join(cwd, 'i18n.config.ts'), `
       export default { 
         locales: ['en-GB', 'de-DE'], 
-        defaultLocale: 'en-GB', 
-        directory: 'src/assets/i18n' 
+        defaultLocale: 'en-GB'
       }
     `)
 
@@ -535,7 +514,6 @@ describe('loadI18nConfig', () => {
       config: {
         locales: ['en-GB', 'de-DE'],
         defaultLocale: 'en-GB',
-        directory: 'src/assets/i18n',
       },
       sources: ['i18n.config.ts'],
     })
@@ -544,7 +522,6 @@ describe('loadI18nConfig', () => {
 
     expect(i18n.locales).toEqual(['en-GB', 'de-DE'])
     expect(i18n.defaultLocale).toBe('en-GB')
-    expect(i18n.directory).toBe('src/assets/i18n')
     expect(sources[0]).toContain('i18n.config.ts')
   })
 })

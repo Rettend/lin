@@ -38,7 +38,7 @@ export default defineCommand({
 
       const keys = args._ as string[]
       if (keys.length === 1) {
-        const defaultLocaleJson = JSON.parse(fs.readFileSync(r(`${i18n.defaultLocale}.json`, i18n), { encoding: 'utf8' })) as LocaleJson
+        const defaultLocaleJson = JSON.parse(fs.readFileSync(r(`${i18n.defaultLocale}.json`, config), { encoding: 'utf8' })) as LocaleJson
         if (provideSuggestions(defaultLocaleJson, keys[0]))
           return
       }
@@ -47,13 +47,13 @@ export default defineCommand({
       locales = normalizeLocales(locales, i18n)
       const localesToCheck = locales.length > 0 ? locales : i18n.locales
 
-      const filesToModify = localesToCheck.map(locale => r(`${locale}.json`, i18n))
+      const filesToModify = localesToCheck.map(locale => r(`${locale}.json`, config))
       saveUndoState(filesToModify, config as any)
 
       const deletedKeysByLocale: Record<string, string[]> = {}
 
       for (const locale of localesToCheck) {
-        const localeJson = JSON.parse(fs.readFileSync(r(`${locale}.json`, i18n), { encoding: 'utf8' })) as LocaleJson
+        const localeJson = JSON.parse(fs.readFileSync(r(`${locale}.json`, config), { encoding: 'utf8' })) as LocaleJson
 
         for (const key of keys) {
           const nestedKey = findNestedKey(localeJson, key.trim())
@@ -64,7 +64,7 @@ export default defineCommand({
               deletedKeysByLocale[locale] = []
 
             deletedKeysByLocale[locale].push(key)
-            fs.writeFileSync(r(`${locale}.json`, i18n), `${JSON.stringify(localeJson, null, 2)}\n`, { encoding: 'utf8' })
+            fs.writeFileSync(r(`${locale}.json`, config), `${JSON.stringify(localeJson, null, 2)}\n`, { encoding: 'utf8' })
           }
           else {
             console.log(ICONS.info, `Skipped: **${locale}** *(key \`${key}\` not found)*`)

@@ -131,11 +131,23 @@ export default defineConfig({
 })
 ```
 
-#### Batch Size
+#### Batching
 
-The `batchSize` option controls how many locales to translate with the LLM in a single request. This can be useful for projects with many languages. The default is `10`.
+`lin` provides several options to control how translation requests are batched, which is crucial for handling large projects and managing LLM context limits.
 
-You can set this in your `lin.config.ts` using `batchSize` or use the `--batchSize` (or `-b`) flag in the CLI.
+##### Locale Batching (`batchSize`)
+The `batchSize` option controls how many locales are processed together in a single `translate` or `sync` operation. This is useful when you have a large number of languages. The default is `10`.
+
+You can set this in your `lin.config.ts` or use the `--batchSize` (or `-b`) flag.
+
+##### Key-based Batching (`keyBatchSize` & `charLimit`)
+
+Within each locale, `lin` further batches the keys sent to the LLM. A new batch is created when either of these limits is reached:
+
+- `keyBatchSize`: The maximum number of keys in a batch. (Default: `50`)
+- `charLimit`: The maximum number of characters of all *values* in a batch. This acts as a proxy for token limits. (Default: `4000`)
+
+These can be configured in `lin.config.ts` or with the `--kbs` and `--cl` flags.
 
 #### `with` (Context Profiles)
 

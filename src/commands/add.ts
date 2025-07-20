@@ -66,7 +66,7 @@ export default defineCommand({
       }
 
       const i18n = config.i18n
-      const batchSize = config.batchSize || Number.POSITIVE_INFINITY
+      const batchSize = config.limits.locale || Number.POSITIVE_INFINITY
 
       const key = args.key as string
       const positionalArgs = [...(args._ as string[])]
@@ -74,7 +74,7 @@ export default defineCommand({
       let translation = positionalArgs.join(' ')
       const translationProvided = positionalArgs.length > 0
 
-      const defaultLocaleJson = JSON.parse(fs.readFileSync(r(`${i18n.defaultLocale}.json`, i18n), { encoding: 'utf8' }))
+      const defaultLocaleJson = JSON.parse(fs.readFileSync(r(`${i18n.defaultLocale}.json`, config), { encoding: 'utf8' }))
 
       if (key.endsWith('.')) {
         provideSuggestions(defaultLocaleJson, key)
@@ -132,7 +132,7 @@ export default defineCommand({
           const withLocaleJsons: Record<string, LocaleJson> = {}
           for (const locale of withLocales) {
             try {
-              withLocaleJsons[locale] = JSON.parse(fs.readFileSync(r(`${locale}.json`, i18n), { encoding: 'utf8' }))
+              withLocaleJsons[locale] = JSON.parse(fs.readFileSync(r(`${locale}.json`, config), { encoding: 'utf8' }))
             }
             catch (error: any) {
               if (config.debug) {
@@ -154,7 +154,7 @@ export default defineCommand({
           for (const locale of batch) {
             let localeJson: LocaleJson
             try {
-              localeJson = JSON.parse(fs.readFileSync(r(`${locale}.json`, i18n), { encoding: 'utf8' }))
+              localeJson = JSON.parse(fs.readFileSync(r(`${locale}.json`, config), { encoding: 'utf8' }))
             }
             catch (error: any) {
               if (error.code === 'ENOENT') {
@@ -212,7 +212,7 @@ export default defineCommand({
               console.log(ICONS.info, `Translations: ${JSON.stringify(translations)}`)
 
             for (const [locale, newTranslations] of Object.entries(translations)) {
-              const localeFilePath = r(`${locale}.json`, i18n)
+              const localeFilePath = r(`${locale}.json`, config)
 
               let existingTranslations = {}
               try {
@@ -232,7 +232,7 @@ export default defineCommand({
       })
 
       for (const [locale, finalTranslations] of Object.entries(finalTranslationsMap)) {
-        const localeFilePath = r(`${locale}.json`, i18n)
+        const localeFilePath = r(`${locale}.json`, config)
         translationsToWrite[localeFilePath] = finalTranslations
       }
 
@@ -250,7 +250,7 @@ export default defineCommand({
       }
       else if (!args.silent) {
         console.log(ICONS.success, 'All locales are up to date.')
-        console.log(ICONS.note, `Keys: ${countKeys(JSON.parse(fs.readFileSync(r(`${i18n.defaultLocale}.json`, i18n), { encoding: 'utf8' })))}`)
+        console.log(ICONS.note, `Keys: ${countKeys(JSON.parse(fs.readFileSync(r(`${i18n.defaultLocale}.json`, config), { encoding: 'utf8' })))}`)
       }
     }
   },

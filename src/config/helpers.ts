@@ -1,4 +1,4 @@
-import type { AzureLLMProviderOptions, Config, Integration, LLMProviderOptions, Provider } from './types'
+import type { AzureLLMProviderOptions, Config, Integration, LinConfig, LLMProviderOptions, Provider } from './types'
 import { handleCliError } from '../utils'
 import { integrations, providers } from './constants'
 
@@ -19,19 +19,44 @@ export function normalizeArgs(inputArgs: Record<string, any>): Partial<Config> {
     outputConfig.with = inputArgs.with
 
   if (inputArgs.adapter !== undefined) {
-    if (Array.isArray(inputArgs.adapter))
-      outputConfig.adapter = inputArgs.adapter.length > 0 ? inputArgs.adapter : 'all'
+    let adapterValue = inputArgs.adapter
+    if (adapterValue === 'md' || adapterValue === 'mdx')
+      adapterValue = 'markdown'
+    if (adapterValue === 'j')
+      adapterValue = 'json'
+
+    if (Array.isArray(adapterValue))
+      outputConfig.adapter = adapterValue.length > 0 ? adapterValue : 'all'
     else
-      outputConfig.adapter = inputArgs.adapter || 'all'
+      outputConfig.adapter = adapterValue || 'all'
   }
 
-  if (inputArgs.batchSize !== undefined) {
-    const bs = Number(inputArgs.batchSize)
+  const limits: Partial<LinConfig['limits']> = {}
+  if (inputArgs['limit.locale'] !== undefined) {
+    const bs = Number(inputArgs['limit.locale'])
     if (Number.isNaN(bs))
-      handleCliError(`Invalid batchSize "${inputArgs.batchSize}"`)
+      handleCliError(`Invalid limit.locale "${inputArgs['limit.locale']}"`)
 
-    outputConfig.batchSize = bs
+    limits.locale = bs
   }
+
+  if (inputArgs['limit.key'] !== undefined) {
+    const kbs = Number(inputArgs['limit.key'])
+    if (Number.isNaN(kbs))
+      handleCliError(`Invalid limit.key "${inputArgs['limit.key']}"`)
+
+    limits.key = kbs
+  }
+
+  if (inputArgs['limit.char'] !== undefined) {
+    const cl = Number(inputArgs['limit.char'])
+    if (Number.isNaN(cl))
+      handleCliError(`Invalid limit.char "${inputArgs['limit.char']}"`)
+
+    limits.char = cl
+  }
+  if (Object.keys(limits).length > 0)
+    outputConfig.limits = limits as LinConfig['limits']
 
   if (inputArgs.integration !== undefined) {
     if (inputArgs.integration && !integrations.includes(inputArgs.integration as any)) {
