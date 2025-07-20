@@ -11,6 +11,10 @@ export const mockResolvedConfig: DeepRequired<ResolvedConfig> = {
   batchSize: 10,
   undo: false,
   integration: '',
+  adapter: 'json',
+  adapters: {
+    json: {},
+  },
   parser: {
     input: ['src/**/*.{js,jsx,ts,tsx,vue,svelte,astro}'],
   },

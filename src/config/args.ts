@@ -27,9 +27,14 @@ export const commonArgs = {
     type: 'boolean',
     description: 'debug mode',
   },
+  adapter: {
+    alias: 'a',
+    type: 'string',
+    description: 'the adapter(s) to use',
+  },
   undo: {
     type: 'boolean',
-    description: 'Enable/disable undo history. Use --no-undo to disable.',
+    description: 'enable/disable undo history, use --no-undo to disable',
   },
 } as const satisfies CommonArgs
 

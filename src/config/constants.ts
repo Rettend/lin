@@ -50,6 +50,12 @@ export const DEFAULT_CONFIG = {
   parser: {
     input: ['src/**/*.{js,jsx,ts,tsx,vue,svelte,astro}'],
   },
+  adapters: {
+    json: {},
+    markdown: {
+      files: [],
+    },
+  },
 } satisfies Config
 
 export const availableModels = {

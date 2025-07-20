@@ -114,8 +114,6 @@ lin translate -A markdown   # markdown only
 
    It draws a prefix bar and indents output while `task` runs.
 
-6. **Migration Layer** (temporary): detect old `markdown` config, warn & auto-map to `adapters.markdown` until v3.
-
 ---
 
 ## 4. Incremental Implementation Plan
@@ -126,8 +124,7 @@ lin translate -A markdown   # markdown only
 | 2 | Engine extraction | Move markdown logic into `engine/markdown.ts`; commands call new engine but flow identical |
 | 3 | Loop over adapters | Commands iterate over selected adapters; JSON & Markdown work side-by-side |
 | 4 | Console polish | Nice sectioned output, verbose/silent respected |
-| 5 | Deprecation cleanup | Remove old top-level `markdown` key, update docs/tests |
-| 6 | Future work | Add sample `yaml` adapter, adapter test harness |
+| 5 | Future work | Add sample `yaml` adapter, adapter test harness |
 
 ---
 
@@ -135,7 +132,7 @@ lin translate -A markdown   # markdown only
 
 * **Unit tests** per engine (extract → translate → render) using Vitest.
 * **Integration tests**: replicate `test/commands/*` for markdown flow.
-* **Docs**: update `docs/` pages; add migration guide v2 → v3.
+* **Docs**: update `docs/` pages.
 
 ---
 

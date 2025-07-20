@@ -18,6 +18,9 @@ export function normalizeArgs(inputArgs: Record<string, any>): Partial<Config> {
   if (inputArgs.with !== undefined)
     outputConfig.with = inputArgs.with
 
+  if (inputArgs.adapter !== undefined)
+    outputConfig.adapter = inputArgs.adapter
+
   if (inputArgs.batchSize !== undefined) {
     const bs = Number(inputArgs.batchSize)
     if (Number.isNaN(bs))
@@ -95,6 +98,9 @@ export function normalizeArgs(inputArgs: Record<string, any>): Partial<Config> {
 
   if (Object.keys(llmOptsFromInput).length > 0)
     outputConfig.options = llmOptsFromInput as LLMProviderOptions
+
+  if (inputArgs.adapters)
+    outputConfig.adapters = inputArgs.adapters
 
   return outputConfig
 }

@@ -138,5 +138,11 @@
       "timezone": "Timezone",
       "title": "Settings"
     }
-  }
+  },
+  "test": {
+    "message": "Test"
+  },
+  "insertButton": "Add record",
+  "purgeButton": "Purge",
+  "testKey2": "Test2"
 }

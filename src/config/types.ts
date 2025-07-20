@@ -100,10 +100,25 @@ export interface CommonConfig {
   debug: boolean
 
   /**
+   * The adapter(s) to use.
+   * If not provided, all configured adapters will be used.
+   */
+  adapter?: string | string[]
+
+  /**
    * Enable/disable undo history.
    * @default true
    */
   undo: boolean
+}
+
+export interface JsonAdapterConfig {
+  sort?: 'abc' | 'def'
+}
+
+export interface MarkdownAdapterConfig {
+  files: string[]
+  localesDir?: string
 }
 
 export interface LinConfig {
@@ -152,6 +167,11 @@ export interface LinConfig {
    * Configuration for the key parser.
    */
   parser?: ParserConfig
+
+  adapters?: {
+    json?: JsonAdapterConfig
+    markdown?: MarkdownAdapterConfig
+  }
 }
 
 export type Config = CommonConfig & LinConfig
