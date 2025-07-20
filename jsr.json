@@ -1,5 +1,5 @@
 {
-  "name": "@yuo/lin",
+  "name": "@rttnd/lin",
   "version": "2.1.0",
   "exports": "./src/index.ts",
   "publish": {

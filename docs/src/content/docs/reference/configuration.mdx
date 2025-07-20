@@ -3,7 +3,7 @@ title: Configuration
 description: Detailed explanation of `lin.config.ts`, i18n auto-detection, LLM options, and parser settings.
 ---
 import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
-import { providers, integrations } from '@yuo-app/lin'
+import { providers, integrations } from '@rttnd/lin'
 
 `lin` is designed to work with minimal configuration by auto-detecting your setup. However, you can customize every aspect of its behavior.
 
@@ -27,7 +27,7 @@ If your framework is not auto-detected, you can put your i18n config inside your
   <TabItem label="lin.config.ts">
     Add an `i18n` object to your main `lin.config.ts` file.
     ```ts
-    import { defineConfig } from '@yuo-app/lin'
+    import { defineConfig } from '@rttnd/lin'
 
     export default defineConfig({
       i18n: {
@@ -42,7 +42,7 @@ If your framework is not auto-detected, you can put your i18n config inside your
   <TabItem label="i18n.config.ts">
     If you don't plan to use other `lin` config, just create a `i18n.config.ts` file.
     ```ts
-    import { defineI18nConfig } from '@yuo-app/lin'
+    import { defineI18nConfig } from '@rttnd/lin'
 
     export default defineI18nConfig({
       locales: ['en-US', 'es-ES'],
@@ -62,7 +62,7 @@ Make sure the corresponding API key is set in your env variables (e.g., `OPENAI_
 Example `lin.config.ts` with LLM options:
 
 ```ts
-import { defineConfig } from '@yuo-app/lin'
+import { defineConfig } from '@rttnd/lin'
 
 export default defineConfig({
   options: {

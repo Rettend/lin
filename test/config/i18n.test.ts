@@ -492,7 +492,7 @@ describe('loadI18nConfig', () => {
   it('should load i18n config from lin.config.ts when svelte.config.js is present but has no i18n block', async () => {
     setupVirtualFile(path.join(cwd, 'svelte.config.js'), 'export default { kit: {} }')
     setupVirtualFile(path.join(cwd, 'lin.config.ts'), `
-      import { defineConfig } from '@yuo-app/lin';
+      import { defineConfig } from '@rttnd/lin';
       export default defineConfig({ 
         i18n: { 
           locales: ['en-US', 'fr-FR'], 

@@ -1,6 +1,6 @@
 name = "lin-docs"
 compatibility_date = "2025-04-01"
-routes = [ { pattern = "lin.yuo.app", custom_domain = true } ]
+routes = [ { pattern = "lin.rettend.me", custom_domain = true } ]
 
 [assets]
 directory = "./dist"

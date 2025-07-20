@@ -21,27 +21,27 @@ For the complete config, see [Configuration](/reference/configuration).
     <Tabs syncKey="pkg">
       <TabItem label="npm">
         ```sh
-        npm i -D @yuo-app/lin
+        npm i -D @rttnd/lin
         ```
       </TabItem>
       <TabItem label="pnpm">
         ```sh
-        pnpm add -D @yuo-app/lin
+        pnpm add -D @rttnd/lin
         ```
       </TabItem>
       <TabItem label="yarn">
         ```sh
-        yarn add -D @yuo-app/lin
+        yarn add -D @rttnd/lin
         ```
       </TabItem>
       <TabItem label="bun">
         ```sh
-        bun add -d @yuo-app/lin
+        bun add -d @rttnd/lin
         ```
       </TabItem>
       <TabItem label="ni">
         ```sh
-        ni -D @yuo-app/lin
+        ni -D @rttnd/lin
         ```
       </TabItem>
     </Tabs>
@@ -59,7 +59,7 @@ For the complete config, see [Configuration](/reference/configuration).
       <TabItem label="lin.config.ts">
         Add an `i18n` object to your main `lin.config.ts` file.
         ```ts
-        import { defineConfig } from '@yuo-app/lin'
+        import { defineConfig } from '@rttnd/lin'
 
         export default defineConfig({
           i18n: {
@@ -74,7 +74,7 @@ For the complete config, see [Configuration](/reference/configuration).
       <TabItem label="i18n.config.ts">
         If you don't plan to use other `lin` config, just create a `i18n.config.ts` file.
         ```ts
-        import { defineI18nConfig } from '@yuo-app/lin'
+        import { defineI18nConfig } from '@rttnd/lin'
 
         export default defineI18nConfig({
           locales: ['en-US', 'es-ES'],
@@ -93,7 +93,7 @@ For the complete config, see [Configuration](/reference/configuration).
     These are the defaults:
 
     ```ts
-    import { defineConfig } from '@yuo-app/lin'
+    import { defineConfig } from '@rttnd/lin'
 
     export default defineConfig({
       options: {

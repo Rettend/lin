@@ -3,17 +3,17 @@
   <code>lin</code> is a CLI tool that translates locale JSONs using LLMs
 </p>
 
-[![NPM Version](https://img.shields.io/npm/v/%40yuo-app%2Flin?color=red)](https://www.npmjs.com/package/%40yuo-app%2Flin)
-[![JSR Version](https://img.shields.io/jsr/v/%40yuo/lin?color=yellow)](https://jsr.io/%40yuo/lin)
+[![NPM Version](https://img.shields.io/npm/v/%40Rettend%2Flin?color=red)](https://www.npmjs.com/package/%40Rettend%2Flin)
+[![JSR Version](https://img.shields.io/jsr/v/%40rttnd/lin?color=yellow)](https://jsr.io/%40rttnd/lin)
 
-Check out the [docs](https://lin.yuo.app) or continue reading below.
+Check out the [docs](https://lin.rettend.me) or continue reading below.
 
 ## get started
 
 ### install
 
 ```bash
-npm i -D @yuo-app/lin
+npm i -D @rttnd/lin
 ```
 
 or use `-g` to install globally for non-npm projects.
@@ -53,7 +53,7 @@ Or you can create a configuration file to tell `lin` about your i18n setup. You 
     Example `lin.config.ts`:
 
     ```ts
-    import { defineConfig } from '@yuo-app/lin'
+    import { defineConfig } from '@rttnd/lin'
 
     export default defineConfig({
       i18n: {
@@ -71,7 +71,7 @@ Or you can create a configuration file to tell `lin` about your i18n setup. You 
     Example `i18n.config.ts`:
 
     ```ts
-    import { defineI18nConfig } from '@yuo-app/lin'
+    import { defineI18nConfig } from '@rttnd/lin'
 
     export default defineI18nConfig({
       locales: ['en-US', 'es-ES'],
@@ -375,7 +375,7 @@ All commands and types are exported from the main package entry point.
 The `run` function allows you to execute any command:
 
 ```ts
-import { run } from '@yuo-app/lin'
+import { run } from '@rttnd/lin'
 
 // Simple usage: run the 'translate' command with the --silent flag
 await run('translate', ['-S'])
@@ -412,7 +412,7 @@ function run(
 Here's how you can see what files `check --fix` would change, without actually modifying your disk:
 
 ```ts
-import { run } from '@yuo-app/lin'
+import { run } from '@rttnd/lin'
 
 const { output, writes } = await run(
   'check',
@@ -472,7 +472,7 @@ Make sure the corresponding API key is set in your env variables (e.g., `OPENAI_
 Example `lin.config.ts` with LLM options:
 
 ```ts
-import { defineConfig } from '@yuo-app/lin'
+import { defineConfig } from '@rttnd/lin'
 
 export default defineConfig({
   options: {

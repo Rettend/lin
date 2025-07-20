@@ -1,25 +1,22 @@
 // @ts-check
-import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import starlight from '@astrojs/starlight'
 import { defineConfig } from 'astro/config'
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-
 export default defineConfig({
-  site: 'https://lin.yuo.app',
+  site: 'https://lin.rettend.me',
   base: '/',
   vite: {
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, '../src'),
+        '@': fileURLToPath(new URL('../src', import.meta.url)),
       },
     },
   },
   integrations: [
     starlight({
       title: 'lin',
-      social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/yuo-app/lin' }],
+      social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/Rettend/lin' }],
       customCss: ['@fontsource/inter/400.css', '@fontsource/inter/600.css', './src/styles/custom.css'],
       components: {
         Header: './src/components/Header.astro',

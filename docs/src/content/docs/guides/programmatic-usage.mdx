@@ -13,7 +13,7 @@ All commands and types are exported from the main package entry point.
 The `run` function allows you to execute any command.
 
 ```ts
-import { run } from '@yuo-app/lin'
+import { run } from '@rttnd/lin'
 
 // Simple usage: run the 'translate' command with the --silent flag
 await run('translate', ['-S'])
@@ -50,7 +50,7 @@ function run(
 Here's how you can see what files `check --fix` would change, without actually modifying your disk:
 
 ```ts
-import { run } from '@yuo-app/lin'
+import { run } from '@rttnd/lin'
 
 const { output, writes } = await run(
   'check',
