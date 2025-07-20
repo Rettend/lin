@@ -150,6 +150,8 @@ Removes one or more keys from all specified locale files.
 
 Validates and maintains your locale files. It can find missing and unused keys, sort keys, and display configuration info. It's ideal for CI or pre-commit hooks if you don't want to use LLMs and `translate`.
 
+When used with the `markdown` adapter, it checks for discrepancies between your source Markdown files and the translation snapshots stored in `.lin/markdown`.
+
 <Tabs>
   <TabItem label="Usage">
     ```bash
@@ -178,6 +180,17 @@ Validates and maintains your locale files. It can find missing and unused keys, 
     ```
   </TabItem>
 </Tabs>
+
+#### `check` with Markdown
+
+When using the `markdown` adapter, `check` performs a two-step process:
+
+1.  **Source Linting**: It first compares your source Markdown files (e.g., in `docs/`) against the default locale's snapshot (e.g., `.lin/markdown/en-US.json`).
+    - It reports any new content found in your documents that is missing from the snapshot.
+    - It also reports any content in the snapshot that no longer exists in your documents (unused).
+2.  **Target Linting**: If the source and the default snapshot are in sync, it then proceeds to check each target locale's snapshot against the default one, reporting any missing or untranslated content blocks.
+
+Use the `--fix` flag to add new content from your source files to the snapshots, and `--prune` to remove unused entries from the snapshots.
 
 #### `check` with Git Hooks
 

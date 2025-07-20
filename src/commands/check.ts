@@ -9,6 +9,7 @@ import * as i18nextParser from 'i18next-parser'
 import c from 'picocolors'
 import { commonArgs, resolveConfig } from '@/config'
 import { loadI18nConfig } from '@/config/i18n'
+import { markdownAdapter } from '@/engine'
 import {
   catchError,
   checkArg,
@@ -85,17 +86,106 @@ export default defineCommand({
           if (!markdownConfig || markdownConfig.files.length === 0)
             return
 
+          const files = await glob(markdownConfig.files, { cwd: config.cwd, absolute: true })
+          if (files.length === 0) {
+            if (config.debug)
+              console.log(ICONS.info, `No markdown files found for glob: ${markdownConfig.files.join(', ')}`)
+            return
+          }
+
+          let currentSourceUnits: Record<string, string> = {}
+          for (const file of files) {
+            const content = fs.readFileSync(file, 'utf-8')
+            const units = markdownAdapter.extract(file, content)
+            currentSourceUnits = { ...currentSourceUnits, ...units }
+          }
+
           const localesDir = markdownConfig.localesDir || '.lin/markdown'
           if (!fs.existsSync(localesDir))
             fs.mkdirSync(localesDir, { recursive: true })
 
           const sourceSnapshotPath = path.join(localesDir, `${i18n.defaultLocale}.json`)
-          if (!fs.existsSync(sourceSnapshotPath)) {
-            console.log(ICONS.warning, `Source snapshot for markdown not found. Run "sync" first.`)
+          let sourceSnapshot: LocaleJson = {}
+          if (fs.existsSync(sourceSnapshotPath)) {
+            try {
+              sourceSnapshot = JSON.parse(fs.readFileSync(sourceSnapshotPath, 'utf-8'))
+            }
+            catch {
+              console.log(ICONS.error, `Could not parse source snapshot: ${sourceSnapshotPath}`)
+              return
+            }
+          }
+
+          const missingFromSnapshot = findMissingKeys(currentSourceUnits, sourceSnapshot)
+          const unusedInSnapshot = findMissingKeys(sourceSnapshot, currentSourceUnits)
+
+          if (args.fix && Object.keys(missingFromSnapshot).length > 0) {
+            sourceSnapshot = mergeMissingTranslations(sourceSnapshot, missingFromSnapshot)
+            fs.writeFileSync(sourceSnapshotPath, JSON.stringify(sourceSnapshot, null, 2), 'utf-8')
+            console.log(ICONS.success, `Added \`${Object.keys(missingFromSnapshot).length}\` new content blocks to the default snapshot.`)
+
+            const missingEmpty: LocaleJson = {}
+            for (const key of Object.keys(missingFromSnapshot))
+              missingEmpty[key] = ''
+
+            for (const locale of i18n.locales.filter(l => l !== i18n.defaultLocale)) {
+              const targetSnapshotPath = path.join(localesDir, `${locale}.json`)
+              let targetUnits: Record<string, string> = {}
+              if (fs.existsSync(targetSnapshotPath))
+                targetUnits = JSON.parse(fs.readFileSync(targetSnapshotPath, 'utf-8'))
+
+              const merged = mergeMissingTranslations(targetUnits, missingEmpty)
+              fs.writeFileSync(targetSnapshotPath, JSON.stringify(merged, null, 2), 'utf-8')
+              console.log(ICONS.success, `Added \`${Object.keys(missingFromSnapshot).length}\` missing keys to **${locale}** markdown snapshot.`)
+            }
+          }
+
+          if (args.prune && Object.keys(unusedInSnapshot).length > 0) {
+            for (const locale of i18n.locales) {
+              const snapshotPath = path.join(localesDir, `${locale}.json`)
+              if (!fs.existsSync(snapshotPath))
+                continue
+              const snapshotContent = JSON.parse(fs.readFileSync(snapshotPath, 'utf-8'))
+              for (const key of Object.keys(unusedInSnapshot)) {
+                const nested = findNestedKey(snapshotContent, key)
+                if (nested.value !== undefined)
+                  nested.delete()
+              }
+              cleanupEmptyObjects(snapshotContent)
+              fs.writeFileSync(snapshotPath, JSON.stringify(snapshotContent, null, 2), 'utf-8')
+            }
+            console.log(ICONS.success, `Removed \`${Object.keys(unusedInSnapshot).length}\` unused keys from all markdown snapshots.`)
+
+            if (fs.existsSync(sourceSnapshotPath))
+              sourceSnapshot = JSON.parse(fs.readFileSync(sourceSnapshotPath, 'utf-8'))
+            else
+              sourceSnapshot = {}
+          }
+
+          const hasSourceIssues
+            = (Object.keys(missingFromSnapshot).length > 0 && !args.fix)
+              || (Object.keys(unusedInSnapshot).length > 0 && !args.prune)
+
+          if (hasSourceIssues) {
+            if (Object.keys(missingFromSnapshot).length > 0 && !args.fix) {
+              console.log(ICONS.warning, `Found \`${Object.keys(missingFromSnapshot).length}\` new content blocks in source files not present in the default snapshot.`)
+              const sample = Object.keys(missingFromSnapshot).slice(0, 5)
+              if (sample.length > 0)
+                console.log(ICONS.note, `Samples: ${sample.map(k => `\`${k}\``).join(', ')}${Object.keys(missingFromSnapshot).length > sample.length ? '...' : ''}`)
+            }
+
+            if (Object.keys(unusedInSnapshot).length > 0 && !args.prune) {
+              console.log(ICONS.warning, `Found \`${Object.keys(unusedInSnapshot).length}\` unused keys in default snapshot (content removed from source files).`)
+              const sample = Object.keys(unusedInSnapshot).slice(0, 5)
+              if (sample.length > 0)
+                console.log(ICONS.note, `Samples: ${sample.map(k => `\`${k}\``).join(', ')}${Object.keys(unusedInSnapshot).length > sample.length ? '...' : ''}`)
+            }
+            console.log(ICONS.info, `Run with \`--fix\` to add missing content or \`--prune\` to remove unused content from snapshots.`)
+            process.exitCode = 1
             return
           }
-          const sourceUnits = JSON.parse(fs.readFileSync(sourceSnapshotPath, 'utf-8'))
 
+          let hasIssues = false
           const localesToProcess = i18n.locales.filter(l => l !== i18n.defaultLocale)
           for (const locale of localesToProcess) {
             const targetSnapshotPath = path.join(localesDir, `${locale}.json`)
@@ -103,14 +193,16 @@ export default defineCommand({
             if (fs.existsSync(targetSnapshotPath))
               targetUnits = JSON.parse(fs.readFileSync(targetSnapshotPath, 'utf-8'))
 
-            const missingKeys = findMissingKeys(sourceUnits, targetUnits)
-            const unusedKeys = findMissingKeys(targetUnits, sourceUnits)
+            const missingKeys = findMissingKeys(sourceSnapshot, targetUnits)
+            const unusedKeys = findMissingKeys(targetUnits, sourceSnapshot)
 
             if (Object.keys(missingKeys).length === 0 && Object.keys(unusedKeys).length === 0) {
               if (!args.silent)
                 console.log(ICONS.success, `Markdown for **${locale}** is up to date.`)
               continue
             }
+
+            hasIssues = true
 
             if (Object.keys(missingKeys).length > 0)
               console.log(ICONS.warning, `Markdown for **${locale}** is missing \`${Object.keys(missingKeys).length}\` keys.`)
@@ -135,7 +227,11 @@ export default defineCommand({
               console.log(ICONS.success, `Removed \`${Object.keys(unusedKeys).length}\` unused keys from **${locale}** markdown snapshot.`)
             }
           }
-          return
+
+          if (hasIssues && !args.fix && !args.prune) {
+            console.log(ICONS.info, `Run with \`--fix\` to add missing translations or \`--prune\` to remove unused ones.`)
+            process.exitCode = 1
+          }
         }
         if (adapterId === 'json') {
           let locales = typeof args.locale === 'string' ? [args.locale] : args.locale || []
@@ -422,7 +518,7 @@ export default defineCommand({
             if (args.silent)
               console.log('\nKey issues detected. Run with --fix to add missing keys or --prune to delete them.')
             else
-              console.log(ICONS.error, 'Key issues detected. Run with --fix to add missing keys or --prune to delete them.')
+              console.log(ICONS.info, 'Key issues detected. Run with --fix to add missing keys or --prune to delete them.')
             process.exitCode = 1
           }
         }
