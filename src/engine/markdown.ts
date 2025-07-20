@@ -19,8 +19,7 @@ function makeKey(relPath: string, type: keyof ExtractionState, index: number): s
 }
 
 function getRelativeFilePath(filePath: string): string {
-  // normalise path separators and drop leading ./
-  return filePath.replace(/^[./\\]+/, '')
+  return filePath.replace(/\\/g, '/').replace(/^[./]+/, '')
 }
 
 export const markdownAdapter: FormatAdapter = {

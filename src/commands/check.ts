@@ -18,6 +18,7 @@ import {
   countKeys,
   findMissingKeys,
   findNestedKey,
+  flattenObject,
   getAllKeys,
   ICONS,
   mergeMissingTranslations,
@@ -86,7 +87,7 @@ export default defineCommand({
           if (!markdownConfig || markdownConfig.files.length === 0)
             return
 
-          const files = await glob(markdownConfig.files, { cwd: config.cwd, absolute: true })
+          const files = await glob(markdownConfig.files, { cwd: config.cwd })
           if (files.length === 0) {
             if (config.debug)
               console.log(ICONS.info, `No markdown files found for glob: ${markdownConfig.files.join(', ')}`)
@@ -95,7 +96,8 @@ export default defineCommand({
 
           let currentSourceUnits: Record<string, string> = {}
           for (const file of files) {
-            const content = fs.readFileSync(file, 'utf-8')
+            const absolutePath = path.join(config.cwd, file)
+            const content = fs.readFileSync(absolutePath, 'utf-8')
             const units = markdownAdapter.extract(file, content)
             currentSourceUnits = { ...currentSourceUnits, ...units }
           }
@@ -105,10 +107,11 @@ export default defineCommand({
             fs.mkdirSync(localesDir, { recursive: true })
 
           const sourceSnapshotPath = path.join(localesDir, `${i18n.defaultLocale}.json`)
-          let sourceSnapshot: LocaleJson = {}
+          let sourceSnapshot: Record<string, string> = {}
           if (fs.existsSync(sourceSnapshotPath)) {
             try {
-              sourceSnapshot = JSON.parse(fs.readFileSync(sourceSnapshotPath, 'utf-8'))
+              const potentiallyNested = JSON.parse(fs.readFileSync(sourceSnapshotPath, 'utf-8'))
+              sourceSnapshot = flattenObject(potentiallyNested)
             }
             catch {
               console.log(ICONS.error, `Could not parse source snapshot: ${sourceSnapshotPath}`)
@@ -116,50 +119,58 @@ export default defineCommand({
             }
           }
 
-          const missingFromSnapshot = findMissingKeys(currentSourceUnits, sourceSnapshot)
-          const unusedInSnapshot = findMissingKeys(sourceSnapshot, currentSourceUnits)
+          const findMissingFlat = (a: Record<string, string>, b: Record<string, string>) =>
+            Object.fromEntries(Object.entries(a).filter(([key]) => !Object.prototype.hasOwnProperty.call(b, key)))
 
+          const missingFromSnapshot = findMissingFlat(currentSourceUnits, sourceSnapshot)
+          const unusedInSnapshot = findMissingFlat(sourceSnapshot, currentSourceUnits)
+
+          let sourceWasModified = false
           if (args.fix && Object.keys(missingFromSnapshot).length > 0) {
-            sourceSnapshot = mergeMissingTranslations(sourceSnapshot, missingFromSnapshot)
+            sourceWasModified = true
+            sourceSnapshot = { ...sourceSnapshot, ...missingFromSnapshot }
             fs.writeFileSync(sourceSnapshotPath, JSON.stringify(sourceSnapshot, null, 2), 'utf-8')
             console.log(ICONS.success, `Added \`${Object.keys(missingFromSnapshot).length}\` new content blocks to the default snapshot.`)
 
-            const missingEmpty: LocaleJson = {}
+            const missingEmpty: Record<string, string> = {}
             for (const key of Object.keys(missingFromSnapshot))
               missingEmpty[key] = ''
 
             for (const locale of i18n.locales.filter(l => l !== i18n.defaultLocale)) {
               const targetSnapshotPath = path.join(localesDir, `${locale}.json`)
               let targetUnits: Record<string, string> = {}
-              if (fs.existsSync(targetSnapshotPath))
-                targetUnits = JSON.parse(fs.readFileSync(targetSnapshotPath, 'utf-8'))
+              if (fs.existsSync(targetSnapshotPath)) {
+                const potentiallyNested = JSON.parse(fs.readFileSync(targetSnapshotPath, 'utf-8'))
+                targetUnits = flattenObject(potentiallyNested)
+              }
 
-              const merged = mergeMissingTranslations(targetUnits, missingEmpty)
+              const merged = { ...targetUnits, ...missingEmpty }
               fs.writeFileSync(targetSnapshotPath, JSON.stringify(merged, null, 2), 'utf-8')
               console.log(ICONS.success, `Added \`${Object.keys(missingFromSnapshot).length}\` missing keys to **${locale}** markdown snapshot.`)
             }
           }
 
           if (args.prune && Object.keys(unusedInSnapshot).length > 0) {
+            sourceWasModified = true
             for (const locale of i18n.locales) {
               const snapshotPath = path.join(localesDir, `${locale}.json`)
               if (!fs.existsSync(snapshotPath))
                 continue
-              const snapshotContent = JSON.parse(fs.readFileSync(snapshotPath, 'utf-8'))
-              for (const key of Object.keys(unusedInSnapshot)) {
-                const nested = findNestedKey(snapshotContent, key)
-                if (nested.value !== undefined)
-                  nested.delete()
-              }
-              cleanupEmptyObjects(snapshotContent)
+              const snapshotContent = flattenObject(JSON.parse(fs.readFileSync(snapshotPath, 'utf-8')))
+              for (const key of Object.keys(unusedInSnapshot))
+                delete snapshotContent[key]
+
               fs.writeFileSync(snapshotPath, JSON.stringify(snapshotContent, null, 2), 'utf-8')
             }
             console.log(ICONS.success, `Removed \`${Object.keys(unusedInSnapshot).length}\` unused keys from all markdown snapshots.`)
 
-            if (fs.existsSync(sourceSnapshotPath))
-              sourceSnapshot = JSON.parse(fs.readFileSync(sourceSnapshotPath, 'utf-8'))
-            else
+            if (fs.existsSync(sourceSnapshotPath)) {
+              const potentiallyNested = JSON.parse(fs.readFileSync(sourceSnapshotPath, 'utf-8'))
+              sourceSnapshot = flattenObject(potentiallyNested)
+            }
+            else {
               sourceSnapshot = {}
+            }
           }
 
           const hasSourceIssues
@@ -185,46 +196,62 @@ export default defineCommand({
             return
           }
 
+          if ((args.fix || args.prune) && !sourceWasModified) {
+            const hasMissingAfterFix = Object.keys(findMissingFlat(currentSourceUnits, sourceSnapshot)).length > 0
+            const hasUnusedAfterPrune = Object.keys(findMissingFlat(sourceSnapshot, currentSourceUnits)).length > 0
+            if (!hasMissingAfterFix && !hasUnusedAfterPrune)
+              console.log(ICONS.success, `Markdown source snapshot is up to date.`)
+          }
+
           let hasIssues = false
           const localesToProcess = i18n.locales.filter(l => l !== i18n.defaultLocale)
           for (const locale of localesToProcess) {
             const targetSnapshotPath = path.join(localesDir, `${locale}.json`)
             let targetUnits: Record<string, string> = {}
-            if (fs.existsSync(targetSnapshotPath))
-              targetUnits = JSON.parse(fs.readFileSync(targetSnapshotPath, 'utf-8'))
-
-            const missingKeys = findMissingKeys(sourceSnapshot, targetUnits)
-            const unusedKeys = findMissingKeys(targetUnits, sourceSnapshot)
-
-            if (Object.keys(missingKeys).length === 0 && Object.keys(unusedKeys).length === 0) {
-              if (!args.silent)
-                console.log(ICONS.success, `Markdown for **${locale}** is up to date.`)
-              continue
+            if (fs.existsSync(targetSnapshotPath)) {
+              const potentiallyNested = JSON.parse(fs.readFileSync(targetSnapshotPath, 'utf-8'))
+              targetUnits = flattenObject(potentiallyNested)
             }
 
-            hasIssues = true
+            const missingKeys = findMissingFlat(sourceSnapshot, targetUnits)
+            const unusedKeys = findMissingFlat(targetUnits, sourceSnapshot)
 
             if (Object.keys(missingKeys).length > 0)
-              console.log(ICONS.warning, `Markdown for **${locale}** is missing \`${Object.keys(missingKeys).length}\` keys.`)
-
+              hasIssues = true
             if (Object.keys(unusedKeys).length > 0)
-              console.log(ICONS.warning, `Markdown for **${locale}** has \`${Object.keys(unusedKeys).length}\` unused keys.`)
+              hasIssues = true
 
-            if (args.fix && Object.keys(missingKeys).length > 0) {
-              const missingEmpty: LocaleJson = {}
+            const fixedInThisRun = args.fix && Object.keys(missingKeys).length > 0
+            if (fixedInThisRun) {
+              const missingEmpty: Record<string, string> = {}
               for (const key of Object.keys(missingKeys))
                 missingEmpty[key] = ''
-              const merged = mergeMissingTranslations(targetUnits, missingEmpty)
+              const merged = { ...targetUnits, ...missingEmpty }
               fs.writeFileSync(targetSnapshotPath, JSON.stringify(merged, null, 2), 'utf-8')
               console.log(ICONS.success, `Added \`${Object.keys(missingKeys).length}\` missing keys to **${locale}** markdown snapshot.`)
             }
 
-            if (args.prune && Object.keys(unusedKeys).length > 0) {
+            const prunedInThisRun = args.prune && Object.keys(unusedKeys).length > 0
+            if (prunedInThisRun) {
               for (const key of Object.keys(unusedKeys))
                 delete targetUnits[key]
 
               fs.writeFileSync(targetSnapshotPath, JSON.stringify(targetUnits, null, 2), 'utf-8')
               console.log(ICONS.success, `Removed \`${Object.keys(unusedKeys).length}\` unused keys from **${locale}** markdown snapshot.`)
+            }
+
+            if (!fixedInThisRun && !prunedInThisRun && !sourceWasModified) {
+              if (Object.keys(missingKeys).length === 0 && Object.keys(unusedKeys).length === 0) {
+                if (!args.silent)
+                  console.log(ICONS.success, `Markdown for **${locale}** is up to date.`)
+              }
+              else {
+                if (Object.keys(missingKeys).length > 0)
+                  console.log(ICONS.warning, `Markdown for **${locale}** is missing \`${Object.keys(missingKeys).length}\` keys.`)
+
+                if (Object.keys(unusedKeys).length > 0)
+                  console.log(ICONS.warning, `Markdown for **${locale}** has \`${Object.keys(unusedKeys).length}\` unused keys.`)
+              }
             }
           }
 

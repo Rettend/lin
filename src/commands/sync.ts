@@ -68,7 +68,7 @@ export default defineCommand({
             return
           }
 
-          const files = await glob(markdownConfig.files, { cwd: config.cwd, absolute: true })
+          const files = await glob(markdownConfig.files, { cwd: config.cwd })
           if (files.length === 0) {
             if (config.debug)
               console.log(ICONS.info, `No markdown files found for glob: ${markdownConfig.files.join(', ')}`)
@@ -82,7 +82,8 @@ export default defineCommand({
           // Extract from all source files
           let allSourceUnits: Record<string, string> = {}
           for (const file of files) {
-            const content = fs.readFileSync(file, 'utf-8')
+            const absolutePath = path.join(config.cwd, file)
+            const content = fs.readFileSync(absolutePath, 'utf-8')
             const units = markdownAdapter.extract(file, content)
             allSourceUnits = { ...allSourceUnits, ...units }
           }
@@ -125,7 +126,8 @@ export default defineCommand({
               const relPath = file.replace(/^[./\\]+/, '')
               const fileTranslations = translationsByFile[relPath]
               if (fileTranslations) {
-                const sourceContent = fs.readFileSync(file, 'utf-8')
+                const absolutePath = path.join(config.cwd, file)
+                const sourceContent = fs.readFileSync(absolutePath, 'utf-8')
                 const { text: renderedText, changed } = markdownAdapter.render(file, sourceContent, fileTranslations)
                 if (changed) {
                   const outputPattern = markdownConfig.output || path.join(path.dirname(file), '{locale}', path.basename(file))
