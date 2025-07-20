@@ -60,6 +60,13 @@ describe('run()', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     seedLocales()
+
+    const stdout = process.stdout as any
+    stdout.moveCursor = vi.fn()
+    stdout.cursorTo = vi.fn()
+    stdout.clearLine = vi.fn()
+    Object.defineProperty(process.stdout, 'isTTY', { value: true, configurable: true })
+    Object.defineProperty(process.stdout, 'columns', { value: 80, configurable: true })
   })
 
   it('should perform a dry run, capture output silently, and return intended writes', async () => {

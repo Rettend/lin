@@ -43,6 +43,14 @@ describe('sync command', () => {
     vi.clearAllMocks()
     resetVfs()
 
+    const stdout = process.stdout as any
+    stdout.moveCursor = vi.fn()
+    stdout.cursorTo = vi.fn()
+    stdout.clearLine = vi.fn()
+    stdout.write = vi.fn()
+    Object.defineProperty(process.stdout, 'isTTY', { value: true, configurable: true })
+    Object.defineProperty(process.stdout, 'columns', { value: 80, configurable: true })
+
     ;(resolveConfig as Mock).mockResolvedValue({ config: mockResolvedConfig })
     ;(loadI18nConfig as Mock).mockResolvedValue(mockI18nConfigResult)
 
