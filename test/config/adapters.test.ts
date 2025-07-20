@@ -30,8 +30,10 @@ describe('config with adapters', () => {
     })
 
     expect(config.adapters.json).toEqual({ directory: './locales', sort: 'abc' })
-    expect(config.adapters.markdown).toEqual({ files: ['**/*.md'] })
-    expect(config.adapter).toEqual('markdown')
+    expect(config.adapters.markdown).toEqual({
+      files: ['**/*.md'],
+    })
+    expect(config.adapter).toEqual(['markdown'])
 
     mockedLoadI18nConfig.mockRestore()
   })
@@ -41,16 +43,15 @@ describe('config with adapters', () => {
 
     const fileConfig = {
       adapters: {
-        json: {},
-        markdown: {},
-        yaml: {},
+        json: { directory: './locales' },
+        markdown: { files: ['**/*.md'] },
       },
       adapter: 'all',
     }
 
     const { config } = await resolveConfig(fileConfig)
 
-    expect(config.adapter).toEqual(['json', 'markdown', 'yaml'])
+    expect(config.adapter).toEqual(['json', 'markdown'])
 
     mockedLoadI18nConfig.mockRestore()
   })
@@ -58,7 +59,13 @@ describe('config with adapters', () => {
   it('should handle an array of adapters from the CLI', async () => {
     const mockedLoadI18nConfig = mockLoadI18n()
 
-    const { config } = await resolveConfig({ adapter: ['json', 'markdown'] })
+    const { config } = await resolveConfig({
+      adapter: ['json', 'markdown'],
+      adapters: {
+        json: { directory: './locales' },
+        markdown: { files: ['**/*.md'] },
+      },
+    })
 
     expect(config.adapter).toEqual(['json', 'markdown'])
     expect(config.adapters.json).toBeDefined()
@@ -72,7 +79,10 @@ describe('config with adapters', () => {
 
     const { config } = await resolveConfig({
       adapter: [],
-      adapters: { json: {}, markdown: {} },
+      adapters: {
+        json: { directory: './locales' },
+        markdown: { files: ['**/*.md'] },
+      },
     })
 
     expect(config.adapter).toEqual(['json', 'markdown'])

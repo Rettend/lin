@@ -28,8 +28,13 @@ describe('resolveConfig', () => {
     mockLoadConfig.mockImplementation(
       (options: any) =>
         Promise.resolve({
-          config: options.defaults || {},
-          sources: [],
+          config: {
+            ...(options.defaults || {}),
+            adapters: {
+              json: { directory: 'locales' },
+            },
+          },
+          sources: ['lin.config.js'],
         }),
     )
     mockLoadI18nConfig.mockResolvedValue({
@@ -153,6 +158,7 @@ describe('resolveConfig with presets', () => {
         presets: {
           'fast-groq': { provider: 'groq', model: 'llama-3.1-8b-instant', temperature: 0 },
         },
+        adapters: { json: { directory: 'locales' } },
       },
       sources: ['lin.config.js'],
     })
@@ -171,6 +177,7 @@ describe('resolveConfig with presets', () => {
         presets: {
           'creative-claude': { provider: 'anthropic', model: 'claude-3-5-sonnet-latest', temperature: 0.8 },
         },
+        adapters: { json: { directory: 'locales' } },
       },
       sources: ['lin.config.js'],
     })
@@ -190,6 +197,7 @@ describe('resolveConfig with presets', () => {
         presets: {
           hot: { temperature: 0.99 },
         },
+        adapters: { json: { directory: 'locales' } },
       },
       sources: ['lin.config.js'],
     })
@@ -210,6 +218,7 @@ describe('resolveConfig with presets', () => {
         presets: {
           'context-test': { provider: 'google', model: 'gemini-2.5-flash', context: presetContext },
         },
+        adapters: { json: { directory: 'locales' } },
       },
       sources: ['lin.config.js'],
     })
@@ -227,6 +236,7 @@ describe('resolveConfig with presets', () => {
         presets: {
           'no-context': { provider: 'openai', model: 'gpt-4o-mini' },
         },
+        adapters: { json: { directory: 'locales' } },
       },
       sources: ['lin.config.js'],
     })
@@ -244,6 +254,7 @@ describe('resolveConfig with presets', () => {
         presets: {
           hot: { temperature: 0.99 },
         },
+        adapters: { json: { directory: 'locales' } },
       },
       sources: ['lin.config.js'],
     })
@@ -262,6 +273,7 @@ describe('resolveConfig with presets', () => {
       presets: {
         'semi-hot': { temperature: 0.5, provider: 'anthropic' },
       },
+      adapters: { json: { directory: 'locales' } },
     }
 
     mockLoadConfig.mockResolvedValue({ config: fileConfig, sources: ['lin.config.js'] })
@@ -272,5 +284,123 @@ describe('resolveConfig with presets', () => {
     expect(config.options.provider).toBe('groq')
     expect(config.options.model).toBe('llama-3.1-8b-instant')
     expect(config.options.temperature).toBe(0.5)
+  })
+})
+
+describe('resolveConfig with adapter validation', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockedHandleCliError.mockImplementation(() => {
+      throw new Error('handleCliError was called')
+    })
+    mockLoadI18nConfig.mockResolvedValue({
+      i18n: { locales: ['en-US'], defaultLocale: 'en-US' },
+      sources: [],
+    })
+  })
+
+  it('should throw if no adapters are configured and adapter is "all"', async () => {
+    mockLoadConfig.mockResolvedValue({
+      config: {
+        adapters: {}, // No adapters configured
+      },
+      sources: ['lin.config.js'],
+    })
+
+    const args = { adapter: 'all' }
+    await expect(configIndex.resolveConfig(args)).rejects.toThrowError('handleCliError was called')
+  })
+
+  it('should throw for an invalid adapter name', async () => {
+    mockLoadConfig.mockResolvedValue({
+      config: {
+        adapters: { json: { directory: 'locales' } },
+      },
+      sources: ['lin.config.js'],
+    })
+
+    const args = { adapter: 'invalid-adapter' }
+    await expect(configIndex.resolveConfig(args)).rejects.toThrowError('handleCliError was called')
+  })
+
+  it('should throw if json adapter is requested but not configured', async () => {
+    mockLoadConfig.mockResolvedValue({
+      config: {
+        adapters: { markdown: { files: ['**/*.md'] } },
+      },
+      sources: ['lin.config.js'],
+    })
+
+    const args = { adapter: 'json' }
+    await expect(configIndex.resolveConfig(args)).rejects.toThrowError('handleCliError was called')
+  })
+
+  it('should throw if markdown adapter is requested but not configured', async () => {
+    mockLoadConfig.mockResolvedValue({
+      config: {
+        adapters: { json: { directory: 'locales' } },
+      },
+      sources: ['lin.config.js'],
+    })
+
+    const args = { adapter: 'markdown' }
+    await expect(configIndex.resolveConfig(args)).rejects.toThrowError('handleCliError was called')
+  })
+
+  it('should normalize "md" alias to "markdown" adapter', async () => {
+    mockLoadConfig.mockResolvedValue({
+      config: {
+        adapters: { markdown: { files: ['**/*.md'] } },
+      },
+      sources: ['lin.config.js'],
+    })
+
+    const args = { adapter: 'md' }
+    const { config } = await configIndex.resolveConfig(args)
+    expect(config.adapter).toEqual(['markdown'])
+  })
+
+  it('should normalize "j" alias to "json" adapter', async () => {
+    mockLoadConfig.mockResolvedValue({
+      config: {
+        adapters: { json: { directory: 'locales' } },
+      },
+      sources: ['lin.config.js'],
+    })
+
+    const args = { adapter: 'j' }
+    const { config } = await configIndex.resolveConfig(args)
+    expect(config.adapter).toEqual(['json'])
+  })
+
+  it('should resolve "all" to all configured adapters', async () => {
+    mockLoadConfig.mockResolvedValue({
+      config: {
+        adapters: {
+          json: { directory: 'locales' },
+          markdown: { files: ['**/*.md'] },
+        },
+      },
+      sources: ['lin.config.js'],
+    })
+
+    const args = { adapter: 'all' }
+    const { config } = await configIndex.resolveConfig(args)
+    expect(config.adapter).toEqual(['json', 'markdown'])
+  })
+
+  it('should resolve "all" to only the configured adapters', async () => {
+    mockLoadConfig.mockResolvedValue({
+      config: {
+        adapters: {
+          json: { directory: 'locales' },
+        },
+      },
+      sources: ['lin.config.js'],
+    })
+
+    const args = { adapter: 'all' }
+    const { config } = await configIndex.resolveConfig(args)
+    expect(config.adapter).toEqual(['json'])
   })
 })
