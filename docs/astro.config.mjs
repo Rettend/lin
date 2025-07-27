@@ -16,7 +16,10 @@ export default defineConfig({
   integrations: [
     starlight({
       title: 'lin',
-      social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/Rettend/lin' }],
+      social: [
+        { icon: 'github', label: 'GitHub', href: 'https://github.com/Rettend/lin' },
+        { icon: 'discord', label: 'Discord', href: 'https://discord.gg/FvVaUPhj3t' },
+      ],
       customCss: ['@fontsource/inter/400.css', '@fontsource/inter/600.css', './src/styles/custom.css'],
       components: {
         Header: './src/components/Header.astro',

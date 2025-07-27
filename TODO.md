@@ -29,7 +29,8 @@
 ## v3.0.0
 
 - [x] adapter layer, support json and markdown too
-- [ ] markdown works with check, sync, translate
+- [x] markdown works with check,
+- [ ] markdown works with sync, translate
 - [ ] why is sort in adapters.json? it should work on markdown too
 - [ ] allow any model string not in lin constants to be used
 - [ ] fix gemini schema issue: <https://cloud.google.com/vertex-ai/generative-ai/docs/multimodal/control-generated-output#fields>, <https://github.com/vercel/ai/issues/4725>
