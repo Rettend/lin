@@ -110,6 +110,7 @@ export const availableModels = {
     { value: 'gemma2-9b-it', alias: 'Gemma2 9B IT', iq: 2, speed: 5 },
   ],
   cerebras: [
+    { value: 'qwen-3-235b-a22b-instruct-2507', alias: 'Qwen 3 235B 2507', iq: 4, speed: 5 },
     { value: 'qwen-3-32b', alias: 'Qwen 3 32B', iq: 3, speed: 5 },
     { value: 'deepseek-r1-distill-llama-70b', alias: 'DeepSeek R1 Distill Llama 70B', iq: 3, speed: 5 },
     { value: 'llama-4-scout-17b-16e-instruct', alias: 'Llama 4 Scout', iq: 3, speed: 5 },
