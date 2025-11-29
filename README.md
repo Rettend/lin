@@ -4,7 +4,6 @@
 </p>
 
 [![NPM Version](https://img.shields.io/npm/v/%40Rettend%2Flin?color=red)](https://www.npmjs.com/package/%40Rettend%2Flin)
-[![JSR Version](https://img.shields.io/jsr/v/%40rttnd/lin?color=yellow)](https://jsr.io/%40rttnd/lin)
 
 Check out the [docs](https://lin.rettend.me) or continue reading below.
 
