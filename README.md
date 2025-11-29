@@ -3,7 +3,7 @@
   <code>lin</code> is a CLI tool that translates locale JSONs using LLMs
 </p>
 
-[![NPM Version](https://img.shields.io/npm/v/%40Rettend%2Flin?color=red)](https://www.npmjs.com/package/%40Rettend%2Flin)
+[![NPM Version](https://img.shields.io/npm/v/%40rttnd%2Flin?color=red)](https://www.npmjs.com/package/%40rttnd%2Flin)
 
 Check out the [docs](https://lin.rettend.me) or continue reading below.
 
