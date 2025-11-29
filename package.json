@@ -3,6 +3,7 @@
   "type": "module",
   "version": "2.1.0",
   "workspaces": [
+    ".",
     "docs"
   ],
   "packageManager": "bun@1.2.16",
@@ -38,18 +39,19 @@
     "bin",
     "dist"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
-    "build": "bun --bun unbuild",
-    "dev": "bun --bun unbuild --stub",
-    "check": "tsc --noEmit",
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "check": "tsgo --noEmit",
     "check:i18n": "lin check",
     "lint": "eslint . --fix",
     "test": "vitest --coverage",
     "test:ui": "vitest --ui",
-    "release": "bumpp && bun run build && npm publish --access public"
-  },
-  "peerDependencies": {
-    "typescript": "^5.6.2"
+    "update": "taze latest -wr",
+    "release": "bumpp && bun run build && bun publish"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.2.12",
@@ -75,6 +77,7 @@
     "remark-mdx": "^3.1.0",
     "remark-parse": "^11.0.0",
     "remark-stringify": "^11.0.0",
+    "sisteransi": "^1.0.5",
     "unconfig": "^7.3.2",
     "unified": "^11.0.5",
     "unist-util-visit": "^5.0.0",
@@ -87,12 +90,14 @@
     "@types/glob": "^8.1.0",
     "@types/lodash-es": "^4.17.12",
     "@types/mdast": "^4.0.4",
+    "@typescript/native-preview": "^7.0.0-dev.20251129.1",
     "@vitest/coverage-istanbul": "^3.2.4",
     "@vitest/coverage-v8": "^3.2.4",
     "@vitest/ui": "^3.2.4",
     "bumpp": "^10.2.0",
     "eslint": "^9.29.0",
-    "unbuild": "^3.5.0",
+    "taze": "^19.9.2",
+    "tsdown": "^0.17.0-beta.1",
     "vitest": "^3.2.4"
   },
   "overrides": {
