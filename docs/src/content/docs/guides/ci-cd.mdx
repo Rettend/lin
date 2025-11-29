@@ -3,7 +3,7 @@ title: CI/CD Automation
 description: How to set up lin in a GitHub Actions workflow.
 ---
 
-import { Aside } from '@astrojs/starlight/components';
+import Aside from 'starlight-plugin-icons/components/Aside.astro';
 
 You can use `translate` in GitHub Actions. On every push to `main`, `lin` will automatically find new keys, add them to your locales, and translate them.
 
@@ -54,6 +54,6 @@ jobs:
           fi
 ```
 
-<Aside>
+<Aside type="caution" icon="i-ph:warning-duotone">
   Don't forget to add your LLM provider API keys to your repo secrets.
 </Aside> 

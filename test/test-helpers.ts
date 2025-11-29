@@ -19,6 +19,7 @@ export const mockResolvedConfig: DeepRequired<ResolvedConfig> = {
     markdown: {
       files: ['**/*.md'],
       localesDir: '.lin/markdown',
+      output: 'locales',
     },
   },
   parser: {
@@ -34,7 +35,7 @@ export const mockResolvedConfig: DeepRequired<ResolvedConfig> = {
     mode: 'auto',
     apiKey: '',
     temperature: 0.7,
-    maxTokens: 1000,
+    maxOutputTokens: 1000,
     topP: 1,
     frequencyPenalty: 0,
     presencePenalty: 0,
@@ -45,6 +46,10 @@ export const mockResolvedConfig: DeepRequired<ResolvedConfig> = {
     locale: 10,
     key: 50,
     char: 4000,
+  },
+  registry: {
+    baseUrl: 'https://llm.rettend.me',
+    status: ['latest', 'preview'],
   },
 }
 

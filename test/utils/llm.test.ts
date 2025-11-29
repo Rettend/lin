@@ -5,7 +5,7 @@ import type { I18nConfig } from '@/config/i18n'
 import type { DeepRequired } from '@/types'
 import type { LocaleJson } from '@/utils/locale'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { deletionGuard, jsonExtractionMiddleware, sanitizeJsonString, translateKeys } from '@/utils/llm'
+import { deletionGuard, translateKeys } from '@/utils/llm'
 
 const mockLanguageModelFn = vi.fn().mockReturnValue({})
 const mockProviderClient = { languageModel: mockLanguageModelFn }
@@ -61,6 +61,12 @@ vi.mock('@/utils/general', async () => {
     handleCliError: customMockHandleCliError,
   }
 })
+
+vi.mock('@rttnd/llm', () => ({
+  createRegistry: vi.fn(() => ({
+    getModel: vi.fn().mockResolvedValue({ data: { mode: 'auto' } }),
+  })),
+}))
 
 const { MOCKED_CLI_ERROR_MESSAGE } = await import('../mocks/general.mock')
 const { console: mockConsole, ICONS: mockICONS, formatLog: mockFormatLog } = await import('@/utils/console')
@@ -167,6 +173,7 @@ describe('llm utils', () => {
         markdown: {
           files: ['**/*.md'],
           localesDir: '.lin/markdown',
+          output: 'locales',
         },
       },
       context: 'Test context about the project.',
@@ -189,7 +196,7 @@ describe('llm utils', () => {
         model: 'gpt-4.1-mini',
         apiKey: 'test-api-key',
         temperature: 0.7,
-        maxTokens: 150,
+        maxOutputTokens: 150,
         topP: 0.9,
         frequencyPenalty: 0.1,
         presencePenalty: 0.1,
@@ -197,6 +204,10 @@ describe('llm utils', () => {
         mode: 'auto',
       },
       presets: {},
+      registry: {
+        baseUrl: 'https://llm.rettend.me',
+        status: ['latest', 'preview'],
+      },
     }
 
     const mockI18n: I18nConfig = {
@@ -242,7 +253,6 @@ describe('llm utils', () => {
       expect(generateObjectCall.system).toContain(mockConfigBase.context)
       expect(generateObjectCall.prompt).toBe(JSON.stringify({ 'es-ES': { greeting: 'Hello', farewell: 'Goodbye' } }))
       expect(generateObjectCall.temperature).toBe(mockConfigBase.options.temperature)
-      expect(generateObjectCall.maxTokens).toBe(mockConfigBase.options.maxTokens)
       expect(generateObjectCall.topP).toBe(mockConfigBase.options.topP)
       expect(generateObjectCall.frequencyPenalty).toBe(mockConfigBase.options.frequencyPenalty)
       expect(generateObjectCall.presencePenalty).toBe(mockConfigBase.options.presencePenalty)
@@ -347,11 +357,12 @@ describe('llm utils', () => {
           },
         } as DeepRequired<Config>
         await translateKeys(keysToTranslate, providerConfig, mockI18n)
-        expect(providerMocks[currentProvider]).toHaveBeenCalledWith({ apiKey: 'test-api-key' })
+        const mock = providerMocks[currentProvider as keyof typeof providerMocks]
+        expect(mock).toHaveBeenCalledWith({ apiKey: 'test-api-key' })
         expect(mockLanguageModelFn).toHaveBeenCalledWith(`test-${currentProvider}-model`)
         expect(mockGenerateObject).toHaveBeenCalledTimes(2)
         mockGenerateObject.mockClear()
-        ;(providerMocks[currentProvider] as MockedFunction<any>).mockClear()
+        mock.mockClear()
         mockLanguageModelFn.mockClear()
       })
     })
@@ -363,7 +374,7 @@ describe('llm utils', () => {
           model: 'my-azure-deployment',
           apiKey: 'azure-api-key',
           temperature: mockConfigBase.options.temperature,
-          maxTokens: mockConfigBase.options.maxTokens,
+          maxOutputTokens: mockConfigBase.options.maxOutputTokens,
           topP: mockConfigBase.options.topP,
           frequencyPenalty: mockConfigBase.options.frequencyPenalty,
           presencePenalty: mockConfigBase.options.presencePenalty,
@@ -388,7 +399,7 @@ describe('llm utils', () => {
           model: 'my-azure-deployment-2',
           apiKey: 'azure-api-key-2',
           temperature: mockConfigBase.options.temperature,
-          maxTokens: mockConfigBase.options.maxTokens,
+          maxOutputTokens: mockConfigBase.options.maxOutputTokens,
           topP: mockConfigBase.options.topP,
           frequencyPenalty: mockConfigBase.options.frequencyPenalty,
           presencePenalty: mockConfigBase.options.presencePenalty,
@@ -418,7 +429,7 @@ describe('llm utils', () => {
           model: 'env-based-deployment',
           apiKey: 'azure-api-key-env',
           temperature: mockConfigBase.options.temperature,
-          maxTokens: mockConfigBase.options.maxTokens,
+          maxOutputTokens: mockConfigBase.options.maxOutputTokens,
           topP: mockConfigBase.options.topP,
           frequencyPenalty: mockConfigBase.options.frequencyPenalty,
           presencePenalty: mockConfigBase.options.presencePenalty,
@@ -452,56 +463,6 @@ describe('llm utils', () => {
         'Unsupported provider: unsupported',
         'Supported providers are: openai, anthropic, google, xai, mistral, groq, cerebras, azure.',
       )
-    })
-  })
-
-  describe('sanitizeJsonString', () => {
-    it('should return a valid JSON string as is', () => {
-      const validJson = '{"key":"value"}'
-      expect(sanitizeJsonString(validJson)).toBe(validJson)
-    })
-
-    it('should extract JSON from markdown code blocks', () => {
-      const markdownJson = '```json\n{"key":"value"}\n```'
-      expect(sanitizeJsonString(markdownJson)).toBe('{"key":"value"}')
-    })
-
-    it('should remove thinking tags', () => {
-      const withThinking = '<think>some thoughts</think>{"key":"value"}'
-      expect(sanitizeJsonString(withThinking)).toBe('{"key":"value"}')
-    })
-
-    it('should extract JSON object from a string with surrounding text', () => {
-      const withText = 'Here is the JSON: {"key":"value"} a-and that is it.'
-      expect(sanitizeJsonString(withText)).toBe('{"key":"value"}')
-    })
-
-    it('should handle nested JSON', () => {
-      const nestedJson = '{"key":{"nested_key":"nested_value"}}'
-      expect(sanitizeJsonString(nestedJson)).toBe(nestedJson)
-    })
-
-    it('should remove trailing commas from objects', () => {
-      const withTrailingComma = '{"key":"value",}'
-      const withoutTrailingComma = '{"key":"value"}'
-      expect(JSON.parse(sanitizeJsonString(withTrailingComma))).toEqual(JSON.parse(withoutTrailingComma))
-    })
-  })
-
-  describe('jsonExtractionMiddleware', () => {
-    it('should sanitize the text in the result', async () => {
-      const dirtyJson = '```json\n{"key":"value"}\n```'
-      const doGenerate = vi.fn().mockResolvedValue({ text: dirtyJson })
-
-      const result = await jsonExtractionMiddleware.wrapGenerate!({ doGenerate } as any)
-
-      expect(result.text).toBe('{"key":"value"}')
-    })
-
-    it('should handle result with no text', async () => {
-      const doGenerate = vi.fn().mockResolvedValue({ text: undefined })
-      const result = await jsonExtractionMiddleware.wrapGenerate!({ doGenerate } as any)
-      expect(result.text).toBeUndefined()
     })
   })
 })

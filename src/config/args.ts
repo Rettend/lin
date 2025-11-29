@@ -1,13 +1,16 @@
 import type { StringArgDef } from 'citty'
 import type { CommonConfig, ConfigToArgDef, LinConfig } from './types'
-import { providers } from './constants'
 
 type CommonArgs = ConfigToArgDef<CommonConfig>
 type LLMArgs = Omit<ConfigToArgDef<LinConfig>, 'options' | 'i18n' | 'limits'> & {
-  'provider': StringArgDef
-  'model': StringArgDef
-  'mode': StringArgDef
-  'temperature': StringArgDef
+  'provider'?: StringArgDef
+  'model'?: StringArgDef
+  'mode'?: StringArgDef
+  'context'?: StringArgDef
+  'with'?: StringArgDef
+  'baseUrl'?: StringArgDef
+  'status'?: StringArgDef
+  'temperature'?: StringArgDef
   'limit.locale': StringArgDef
   'limit.key': StringArgDef
   'limit.char': StringArgDef
@@ -55,12 +58,12 @@ export const llmArgs = {
   'provider': {
     alias: 'p',
     type: 'string',
-    description: `the LLM provider to use (e.g., ${providers.join(', ')})`,
+    description: 'the LLM provider to use (e.g., openai)',
   },
   'model': {
     alias: 'm',
     type: 'string',
-    description: 'the model to use (e.g., gpt-4.1-mini)',
+    description: 'the model to use (e.g., gpt-4o)',
   },
   'limit.locale': {
     alias: 'll',
@@ -80,7 +83,7 @@ export const llmArgs = {
   'mode': {
     type: 'string',
     description: 'the output mode to use for the LLM',
-    valueHint: 'auto | json | custom',
+    valueHint: 'auto | json | tool',
   },
   'temperature': {
     alias: 't',
@@ -91,6 +94,14 @@ export const llmArgs = {
     alias: 'w',
     type: 'string',
     description: 'the context profile to use. (def, tgt, both, all, or locales like en)',
+  },
+  'baseUrl': {
+    type: 'string',
+    description: 'the base URL for the LLM registry',
+  },
+  'status': {
+    type: 'string',
+    description: 'the status of models to include (e.g., latest, preview)',
   },
 } as const satisfies LLMArgs
 

@@ -465,6 +465,8 @@ See [`src/config/i18n.ts`](./src/config/i18n.ts) for a full list of configuratio
 - `groq`
 - `azure`
 
+`lin` uses [`@rttnd/llm`](https://github.com/Rettend/llm) to fetch the latest models at runtime, so it's always up to date.
+
 You need to specify the model and the provider in your configuration or via the `--model` (`-m`) and `--provider` (`-p`) CLI flags.
 
 Make sure the corresponding API key is set in your env variables (e.g., `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`).

@@ -1,51 +1,99 @@
 import { defineCommand } from 'citty'
 import c from 'picocolors'
-import { availableModels, commonArgs, providers } from '@/config'
-import { console, generateScoreDots } from '@/utils/console'
-import { handleCliError } from '@/utils/general'
+import { resolveConfig } from '@/config'
+import { commonArgs } from '@/config/args'
+import { providers } from '@/config/constants'
+import { console, generateScoreDots, ICONS } from '@/utils/console'
+import { getRegistry } from '@/utils/llm'
 
 export default defineCommand({
   meta: {
     name: 'models',
-    description: 'Show available LLM models.',
+    description: 'List available LLM models',
   },
   args: {
     ...commonArgs,
-    providers: {
-      type: 'positional',
-      description: `The provider(s) to show models for. If omitted, all providers are shown.`,
-      required: false,
-      valueHint: providers.join(' | '),
+    'provider': {
+      type: 'string',
+      description: 'Filter by provider',
+      alias: 'p',
+    },
+    'clear-cache': {
+      type: 'boolean',
+      description: 'Clear the LLM registry cache',
     },
   },
   async run({ args }) {
-    const providersToShow = args._
+    const { config } = await resolveConfig(args)
+    const registry = getRegistry(config)
 
-    for (const provider of providersToShow) {
-      if (!providers.includes(provider as any))
-        handleCliError(`Invalid provider "${provider}"`, `Available providers: ${providers.join(', ')}`)
+    if (args['clear-cache']) {
+      registry.clearCache()
+      console.logL(ICONS.result, 'LLM registry cache cleared.')
+      return
     }
+
+    const providersFromArgs = new Set<string>()
+
+    if (args.provider) {
+      const p = Array.isArray(args.provider) ? args.provider : [args.provider]
+      p.forEach((val: string) => providersFromArgs.add(val))
+    }
+
+    if (args._ && Array.isArray(args._))
+      args._.forEach((val: string) => providersFromArgs.add(val))
+
+    const { data: models } = await registry.searchModels({
+      provider: providersFromArgs.size > 0 ? Array.from(providersFromArgs) : undefined,
+      status: config.registry.status,
+    })
+
+    if (!models) {
+      console.logL(ICONS.warning, 'No models found.')
+      return
+    }
+
+    // const filteredModels = models.filter(m => m.status && config.registry.status.includes(m.status))
+    const filteredModels = models
+
+    if (filteredModels.length === 0) {
+      console.logL(ICONS.warning, 'No models found.')
+      return
+    }
+
+    let modelsToShow = filteredModels
+    if (providersFromArgs.size === 0)
+      modelsToShow = filteredModels
+      // modelsToShow = filteredModels.filter(m => (providers as readonly string[]).includes(m.provider))
+
+    if (modelsToShow.length === 0) {
+      console.logL(ICONS.warning, 'No supported models found.')
+      return
+    }
+
+    // Group by provider
+    const modelsByProvider = modelsToShow.reduce((acc, model) => {
+      if (!acc[model.provider])
+        acc[model.provider] = []
+
+      acc[model.provider].push(model)
+      return acc
+    }, {} as Record<string, NonNullable<typeof models>>)
 
     console.log('`Available Models:`')
-    const providersToList = providersToShow.length > 0 ? providersToShow : Object.keys(availableModels)
 
     let maxLength = 0
-    for (const provider of providersToList) {
-      if (availableModels[provider as keyof typeof availableModels]) {
-        availableModels[provider as keyof typeof availableModels].forEach((model) => {
-          const modelInfoLength = `    - ${model.alias}: ${model.value}`.length
-          if (modelInfoLength > maxLength)
-            maxLength = modelInfoLength
-        })
-      }
+    for (const provider in modelsByProvider) {
+      modelsByProvider[provider].forEach((model) => {
+        const modelInfoLength = `    - ${model.alias}: ${model.value}`.length
+        if (modelInfoLength > maxLength)
+          maxLength = modelInfoLength
+      })
     }
 
-    for (const provider of providersToList) {
-      if (!availableModels[provider as keyof typeof availableModels])
-        continue
-
+    for (const [provider, providerModels] of Object.entries(modelsByProvider)) {
       console.log(`  \`${provider}\``)
-      availableModels[provider as keyof typeof availableModels].forEach((model) => {
+      providerModels.forEach((model) => {
         const iqDots = generateScoreDots(model.iq, c.magenta)
         const speedDots = generateScoreDots(model.speed, c.cyan)
 

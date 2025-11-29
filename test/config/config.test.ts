@@ -53,7 +53,7 @@ describe('resolveConfig', () => {
     expect(config.i18n.defaultLocale).toEqual('en-US')
     expect(config.adapters?.json?.directory).toEqual('locales')
     expect(config.options.provider).toBe('openai')
-    expect(config.options.model).toBe('gpt-4.1-mini')
+    expect(config.options.model).toBe('gpt-4o')
     expect(config.options.temperature).toBe(0)
   })
 
@@ -117,21 +117,12 @@ describe('resolveConfig', () => {
     expect(config.options.temperature).toBe(0.5)
     expect(config.options.apiKey).toBe('test-azure-key')
     if (config.options.provider === 'azure') {
-      expect(config.options.resourceName).toBe('my-resource')
-      expect(config.options.baseURL).toBe('https://custom.azure.com')
-      expect(config.options.apiVersion).toBe('2025-05-01')
+      const azureOptions = config.options as any
+      expect(azureOptions.resourceName).toBe('my-resource')
+      expect(azureOptions.baseURL).toBe('https://custom.azure.com')
+      expect(azureOptions.apiVersion).toBe('2025-05-01')
     }
     expect(config.cwd).toBe('/test/cwd')
-  })
-
-  it('should handle invalid provider arg', async () => {
-    const args = { provider: 'invalid-provider' }
-    await expect(resolveConfig(args)).rejects.toThrowError('handleCliError was called')
-  })
-
-  it('should handle invalid model for a valid provider', async () => {
-    const args = { provider: 'openai', model: 'invalid-model-for-openai' }
-    await expect(resolveConfig(args)).rejects.toThrowError('handleCliError was called')
   })
 
   it('should handle invalid temperature arg', async () => {

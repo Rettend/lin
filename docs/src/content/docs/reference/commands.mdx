@@ -2,7 +2,8 @@
 title: Commands
 description: Detailed information about every CLI command.
 ---
-import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+import Aside from 'starlight-plugin-icons/components/Aside.astro';
 import { providers } from '@rttnd/lin'
 
 While `translate` is the most end-to-end command, `lin` provides more granular commands for specific tasks:
@@ -16,7 +17,7 @@ While `translate` is the most end-to-end command, `lin` provides more granular c
 - **`models`**: List available LLM models.
 - **`undo`**: Revert the last change made by `translate`, `sync`, `add`, `del`, `edit`, or `check`.
 
-<Aside type="tip">
+<Aside type="tip" icon="i-ph:lightbulb-duotone">
   Run `lin -h` and `lin <command> -h` to see all the options.
 </Aside> 
 
@@ -26,7 +27,7 @@ While `translate` is the most end-to-end command, `lin` provides more granular c
 
 Automates the entire process of finding new keys in your code, adding them to your default locale, and translating them into all other languages. It's a combination of `check --fix` and `sync`.
 
-<Aside>
+<Aside icon="i-ph:info-duotone">
   There is some syntax around **locale codes**:
 
   - Locale JSON file names must match the codes in your `locales` configuration (e.g., `en-US.json` for an `'en-US'` entry).
@@ -246,6 +247,12 @@ To add a new provider, consider opening a PR. It's easy to do!
     ```
   </TabItem>
 </Tabs>
+
+<Aside icon="i-ph:info-duotone">
+`lin` uses [@rttnd/llm](https://github.com/Rettend/llm) to fetch the latest models at runtime.
+
+Use `--clear-cache` to manually clear the llm registry cache.
+</Aside>
 
 ### `undo`
 

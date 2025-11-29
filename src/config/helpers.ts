@@ -1,6 +1,7 @@
+import type { Status } from '@rttnd/llm'
 import type { AzureLLMProviderOptions, Config, Integration, LinConfig, LLMProviderOptions, Provider } from './types'
 import { handleCliError } from '../utils'
-import { integrations, providers } from './constants'
+import { integrations } from './constants'
 
 export function normalizeArgs(inputArgs: Record<string, any>): Partial<Config> {
   const outputConfig: Partial<Config> = {}
@@ -91,12 +92,8 @@ export function normalizeArgs(inputArgs: Record<string, any>): Partial<Config> {
     }
   }
 
-  if (inputArgs.provider !== undefined) {
-    if (!providers.includes(inputArgs.provider))
-      handleCliError(`Invalid provider "${inputArgs.provider}"`, `Available providers: ${providers.join(', ')}`)
-
+  if (inputArgs.provider !== undefined)
     llmOptsFromInput.provider = inputArgs.provider as Provider
-  }
   if (inputArgs.model !== undefined)
     llmOptsFromInput.model = inputArgs.model
 
@@ -130,6 +127,15 @@ export function normalizeArgs(inputArgs: Record<string, any>): Partial<Config> {
 
   if (inputArgs.adapters)
     outputConfig.adapters = inputArgs.adapters
+
+  const registry: Partial<LinConfig['registry']> = {}
+  if (inputArgs.baseUrl !== undefined)
+    registry.baseUrl = inputArgs.baseUrl
+  if (inputArgs.status !== undefined)
+    registry.status = (Array.isArray(inputArgs.status) ? inputArgs.status : [inputArgs.status]) as Status[]
+
+  if (Object.keys(registry).length > 0)
+    outputConfig.registry = registry as LinConfig['registry']
 
   return outputConfig
 }

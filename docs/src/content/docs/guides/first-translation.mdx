@@ -3,7 +3,7 @@ title: Your First Translation
 description: A walkthrough of the core `translate` command.
 ---
 
-import { Aside } from '@astrojs/starlight/components';
+import Aside from 'starlight-plugin-icons/components/Aside.astro';
 
 The main command is **`translate`**. It automates the entire process of finding new keys in your code, adding them to your default locale, and translating them into all other languages.
 
@@ -39,6 +39,6 @@ To make the output more minimal (for CI or scripts), use the `--silent` flag:
 lin translate -S
 ```
 
-<Aside type="tip">
+<Aside type="tip" icon="i-ph:lightbulb-duotone">
   Run `lin -h` and `lin <command> -h` to see all the options.
 </Aside> 

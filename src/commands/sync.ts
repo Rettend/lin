@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { defineCommand } from 'citty'
 import { glob } from 'glob'
-import c from 'picocolors'
+
 import { allArgs, resolveConfig } from '@/config'
 import { jsonAdapter, markdownAdapter } from '@/engine'
 import {

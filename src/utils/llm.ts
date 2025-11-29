@@ -1,5 +1,4 @@
-import type { LanguageModelV1Middleware } from 'ai'
-import type { AzureLLMProviderOptions, Config, ModelDefinition, Provider } from '../config'
+import type { AzureLLMProviderOptions, Config, Provider } from '../config'
 import type { I18nConfig } from '../config/i18n'
 import type { LocaleJson } from './locale'
 import type { DeepRequired } from '@/types'
@@ -12,77 +11,33 @@ import { createMistral } from '@ai-sdk/mistral'
 import { createOpenAI } from '@ai-sdk/openai'
 import { createXai } from '@ai-sdk/xai'
 import { confirm } from '@clack/prompts'
-import { generateObject, wrapLanguageModel, zodSchema } from 'ai'
+import { createRegistry } from '@rttnd/llm'
+import { generateObject } from 'ai'
 import { merge } from 'lodash-es'
 import { z } from 'zod'
-import { availableModels, providers } from '../config'
+import { providers } from '../config'
 import { console, formatLog, ICONS } from './console'
 import { handleCliError } from './general'
 import { mergeMissingTranslations } from './locale'
 import { flattenObject } from './nested'
 
-export function sanitizeJsonString(jsonString: string): string {
-  let processedString = jsonString
-  const thinkTagEnd = '</think>'
-  const thinkIndex = processedString.lastIndexOf(thinkTagEnd)
-  if (thinkIndex !== -1)
-    processedString = processedString.substring(thinkIndex + thinkTagEnd.length)
+let registryInstance: ReturnType<typeof createRegistry> | null = null
 
-  const match = processedString.match(/\{[\s\S]*\}/)
-  if (match)
-    processedString = match[0]
-
-  try {
-    const parsed = JSON.parse(processedString)
-    return JSON.stringify(parsed)
+export function getRegistry(config?: Partial<Config>) {
+  if (!registryInstance) {
+    registryInstance = createRegistry({
+      baseUrl: config?.registry?.baseUrl || 'https://llm.rettend.me',
+      cache: 'fs',
+    })
   }
-  catch {
-    const cleaned = jsonString
-      .replace(/^```json\s*|```\s*$/g, '')
-      .replace(/^\s+|\s+$/g, '')
-      .replace(/^[^{]*(\{.*\})[^}]*$/, '$1')
-      .replace(/\/\/.*$/gm, '')
-      .replace(/([^S\\])\\(?!["\\/bfnrtu])/g, '$1')
-      .replace(/,(?=\s*[}\]])/g, '')
-
-    return cleaned
-  }
+  return registryInstance
 }
 
-export const jsonExtractionMiddleware: LanguageModelV1Middleware = {
-  wrapGenerate: async ({ doGenerate }) => {
-    const result = await doGenerate()
-
-    if (result.text) {
-      try {
-        const cleaned = sanitizeJsonString(result.text)
-
-        try {
-          JSON.parse(cleaned)
-          result.text = cleaned
-        }
-        catch {
-          console.log(ICONS.warning, 'Initial sanitization failed, trying more aggressive approach')
-
-          const match = result.text.match(/\{[\s\S]*\}/)
-          if (match) {
-            const jsonCandidate = match[0]
-            try {
-              const extractedObject = JSON.parse(jsonCandidate)
-              result.text = JSON.stringify(extractedObject)
-            }
-            catch {
-              console.log(ICONS.error, 'Failed to extract valid JSON even with aggressive approach')
-            }
-          }
-        }
-      }
-      catch {
-        console.log(ICONS.error, 'JSON sanitization failed unexpectedly')
-      }
-    }
-    return result
-  },
+export function destroyRegistry() {
+  if (registryInstance) {
+    registryInstance.destroy()
+    registryInstance = null
+  }
 }
 
 export async function deletionGuard(keyCountsBefore: Record<string, number>, keyCountsAfter: Record<string, number>, locales: string[], silent = false): Promise<boolean> {
@@ -142,12 +97,6 @@ function getInstance(provider: Provider) {
       handleCliError(`Unsupported provider: ${provider}`, `Supported providers are: ${providers.join(', ')}.`)
   }
 }
-
-const localeJsonSchema: z.ZodType<LocaleJson> = z.lazy(() =>
-  z.record(z.string(), z.union([z.string(), localeJsonSchema])),
-)
-
-const translationSchema = z.record(z.string(), localeJsonSchema)
 
 export async function translateKeys(
   keysToTranslate: Record<string, LocaleJson>,
@@ -257,6 +206,8 @@ async function translateSingleBatch(
       clientOptions.apiVersion = azureOptions.apiVersion
     if (azureOptions.baseURL)
       clientOptions.baseURL = azureOptions.baseURL
+    if (azureOptions.useDeploymentBasedUrls)
+      clientOptions.useDeploymentBasedUrls = azureOptions.useDeploymentBasedUrls
   }
 
   const providerClient = providerFactory(clientOptions)
@@ -273,25 +224,27 @@ Example output:
 
   const prompt = JSON.stringify(keysForLlm)
 
-  const modelDefinition = availableModels[provider as Provider]?.find(m => m.value === modelId) as ModelDefinition | undefined
-  const mode = modelDefinition?.mode || config.options.mode || 'auto'
-  const generateObjectMode = (mode === 'json' || mode === 'custom') ? 'json' : 'auto'
+  const { data: modelDefinition } = await getRegistry(config as Partial<Config>).getModel(provider, modelId)
+  const mode = (modelDefinition as any)?.mode || config.options.mode || 'auto'
+  const generateObjectMode = (mode === 'json' || mode === 'tool') ? mode : 'auto'
 
-  let modelToUse = model
-  if (mode === 'custom') {
-    modelToUse = wrapLanguageModel({
-      model,
-      middleware: [jsonExtractionMiddleware],
-    })
+  const schemaShape: Record<string, z.ZodTypeAny> = {}
+  for (const [locale, keys] of Object.entries(keysForLlm)) {
+    const localeShape: Record<string, z.ZodTypeAny> = {}
+    for (const key of Object.keys(keys))
+      localeShape[key] = z.string()
+
+    schemaShape[locale] = z.object(localeShape)
   }
+  const dynamicSchema = z.object(schemaShape)
 
   const { object: translatedJson } = await generateObject({
-    model: modelToUse,
-    schema: zodSchema(translationSchema, { useReferences: true }),
+    model,
+    schema: dynamicSchema,
     system,
     prompt,
     temperature: config.options.temperature,
-    maxTokens: config.options.maxTokens,
+    maxOutputTokens: config.options.maxOutputTokens,
     topP: config.options.topP,
     frequencyPenalty: config.options.frequencyPenalty,
     presencePenalty: config.options.presencePenalty,
@@ -304,12 +257,12 @@ Example output:
   // if (config.debug)
   //   console.log('\n', ICONS.info, `Prompt: ${prompt}`)
 
-  const result = { ...translatedJson }
+  const result = { ...translatedJson } as Record<string, LocaleJson>
   for (const locale in passthroughKeys) {
     if (result[locale])
       result[locale] = mergeMissingTranslations(result[locale], passthroughKeys[locale])
     else
-      result[locale] = mergeMissingTranslations({}, passthroughKeys[locale])
+      result[locale] = mergeMissingTranslations({} as LocaleJson, passthroughKeys[locale])
   }
   return result as Record<string, LocaleJson>
 }

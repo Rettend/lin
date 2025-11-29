@@ -1,3 +1,4 @@
+import process from 'node:process'
 import { defineConfig } from './src'
 
 export default defineConfig({
@@ -15,27 +16,28 @@ export default defineConfig({
   },
   with: 'tgt',
   options: {
-    provider: 'google',
-    model: 'gemini-2.5-flash',
+    provider: 'azure',
+    model: 'gpt-5-mini',
+    baseURL: process.env.AZURE_URL,
+    useDeploymentBasedUrls: true,
+    apiVersion: '2025-04-01-preview',
   },
   presets: {
     'grok': {
       provider: 'azure',
-      model: 'grok-3',
-      mode: 'json',
+      model: 'grok-4-fast-non-reasoning',
     },
-    'ds': {
-      provider: 'azure',
-      model: 'DeepSeek-R1-0528',
-      mode: 'custom',
+    'gemini': {
+      provider: 'google',
+      model: 'gemini-2.5-flash',
     },
     'kimi': {
       provider: 'groq',
       model: 'moonshotai/kimi-k2-instruct',
     },
-    'fast-ds': {
-      provider: 'groq',
-      model: 'deepseek-r1-distill-llama-70b',
+    'glm': {
+      provider: 'cerebras',
+      model: 'zai-glm-4.6',
     },
   },
 })

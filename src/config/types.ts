@@ -1,26 +1,24 @@
+import type { Status } from '@rttnd/llm'
 import type { ArgDef, BooleanArgDef, StringArgDef } from 'citty'
-import type { availableModels, integrations, providers } from './constants'
+import type { integrations, providers } from './constants'
 import type { I18nConfig } from '@/config/i18n'
 
 export interface ModelDefinition {
   value: string
   alias: string
-  mode?: 'auto' | 'json' | 'custom'
+  mode?: 'auto' | 'json' | 'tool'
   iq?: number
   speed?: number
 }
 
 export type Provider = (typeof providers)[number]
-
 export type Models = Record<Provider, ModelDefinition[]>
-
-type ModelValue<P extends Provider> = (typeof availableModels)[P][number]['value']
 
 interface LLMOptions {
   /** Optional API key for the provider. If not set, the SDK will try to use the default environment variables. */
   apiKey?: string
   temperature?: number
-  maxTokens?: number
+  maxOutputTokens?: number
   topP?: number
   frequencyPenalty?: number
   presencePenalty?: number
@@ -29,10 +27,10 @@ interface LLMOptions {
    * The output mode to use for the LLM.
    * @value auto: AI SDK will use the best mode for the provider
    * @value json: use native JSON mode or JSON schema in prompt
-   * @value custom: use Lin's custom json output parser
+   * @value tool: use tool calling to extract JSON
    * @default 'auto'
    */
-  mode?: 'auto' | 'json' | 'custom'
+  mode?: 'auto' | 'json' | 'tool'
 }
 
 export interface AzureLLMProviderOptions extends LLMOptions {
@@ -40,13 +38,18 @@ export interface AzureLLMProviderOptions extends LLMOptions {
   /**
    * For Azure, this is your deployment name.
    */
-  model: ModelValue<'azure'> | (string & {})
+  model: string
   /** Azure resource name. Defaults to AZURE_OPENAI_RESOURCE_NAME env var. */
   resourceName?: string
   /** Custom API version. Defaults to a version like '2024-05-01-preview'. */
   apiVersion?: string
   /** URL prefix for API calls. Overrides resourceName if set. */
   baseURL?: string
+  /**
+   * Use deployment-based URLs for API calls.
+   * Useful for compatibility with Azure OpenAI models or deployments that require the legacy endpoint format.
+   */
+  useDeploymentBasedUrls?: boolean
 }
 
 type NonAzureProviderOptionsMap = {
@@ -56,7 +59,7 @@ type NonAzureProviderOptionsMap = {
      * The model to use for the specified provider.
      * e.g., "gpt-4.1-mini" for "openai" provider.
      */
-    model: ModelValue<P> | (string & {})
+    model: string
   } & LLMOptions
 }
 
@@ -194,6 +197,11 @@ export interface LinConfig {
   adapters?: {
     json?: JsonAdapterConfig
     markdown?: MarkdownAdapterConfig
+  }
+
+  registry?: {
+    baseUrl?: string
+    status?: Status[]
   }
 }
 

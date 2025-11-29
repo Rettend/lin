@@ -2,12 +2,13 @@
 title: Configuration
 description: Detailed explanation of `lin.config.ts`, i18n auto-detection, LLM options, and parser settings.
 ---
-import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+import Aside from 'starlight-plugin-icons/components/Aside.astro';
 import { providers, integrations } from '@rttnd/lin'
 
 `lin` is designed to work with minimal configuration by auto-detecting your setup. However, you can customize every aspect of its behavior.
 
-<Aside>
+<Aside icon="i-ph:info-duotone">
   All properties in the config file can also be used as CLI flags. For example, `with: 'def'` in your config is equivalent to running a command with `--with def`.
 </Aside>
 

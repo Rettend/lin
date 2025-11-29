@@ -17,11 +17,8 @@ export {
 } from './args'
 
 export {
-  availableModels,
   DEFAULT_CONFIG,
   integrations,
-  type ModelAlias,
-  type ModelValue,
   providers,
 } from './constants'
 
@@ -179,12 +176,11 @@ export async function resolveConfig(
   }
 
   const { provider, model } = finalMergedConfig.options
-  const modelsForProvider = ConfigConstants.availableModels[provider as ConfigTypes.Provider] || []
 
-  if (provider !== 'azure' && !modelsForProvider.some(m => m.value === model)) {
+  if (!provider || !model) {
     handleCliError(
-      `Model "${model}" not found for provider "${provider}".`,
-      `Available: ${modelsForProvider.map(m => m.value).join(', ')}`,
+      `Provider or model not configured.`,
+      `Please configure them in your lin.config.ts or via CLI arguments.`,
     )
   }
 

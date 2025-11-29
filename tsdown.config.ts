@@ -9,7 +9,4 @@ export default defineConfig({
     tsgo: true,
   },
   minify: true,
-  alias: {
-    '@/*': './src/*',
-  },
 })

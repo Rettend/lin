@@ -14,6 +14,9 @@ const {
 } = createVfsHelpers()
 
 vi.mock('node:fs')
+vi.mock('glob', () => ({
+  glob: vi.fn(() => Promise.resolve([])),
+}))
 vi.mock('@/config', async () => {
   const actual = await vi.importActual('@/config')
   return {
@@ -53,7 +56,16 @@ function seedLocales() {
 
 const virtualCwd = path.resolve('/')
 
-mockedResolveConfig.mockResolvedValue({ config: { ...mockResolvedConfig, cwd: virtualCwd } })
+mockedResolveConfig.mockResolvedValue({
+  config: {
+    ...mockResolvedConfig,
+    cwd: virtualCwd,
+    registry: {
+      baseUrl: 'https://llm.rettend.me',
+      status: ['latest', 'preview'],
+    },
+  },
+})
 mockedLoadI18nConfig.mockResolvedValue(mockI18nConfigResult)
 
 describe('run()', () => {

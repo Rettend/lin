@@ -1,16 +1,16 @@
-export type DeepReadonly<T> = {
-  readonly [K in keyof T]: keyof T[K] extends never ? T[K] : DeepReadonly<T[K]>
+export type DeepReadonly<T> = T extends Primitive ? T : {
+  readonly [K in keyof T]: DeepReadonly<T[K]>
 }
 
-export type DeepPartial<T> = {
-  [K in keyof T]?: keyof T[K] extends never ? T[K] : DeepPartial<T[K]>
+export type DeepPartial<T> = T extends Primitive ? T : {
+  [K in keyof T]?: DeepPartial<T[K]>
 }
 
-export type DeepRequired<T> = {
-  [K in keyof T]-?: keyof T[K] extends never ? T[K] : DeepRequired<T[K]>
+export type DeepRequired<T> = T extends Primitive ? T : {
+  [K in keyof T]-?: DeepRequired<T[K]>
 }
 
-type Primitive = string | number | boolean | null | undefined
+type Primitive = string | number | boolean | null | undefined | ((...args: any[]) => any) | symbol | bigint
 
 export type NestedKeyOf<T> = T extends Primitive
   ? never

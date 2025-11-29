@@ -1,12 +1,11 @@
 import type { MockedFunction } from 'vitest'
-import type { ModelDefinition } from '@/config'
-import c from 'picocolors'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import modelsCommand from '@/commands/models'
-import { availableModels, providers } from '@/config'
+import * as configModule from '@/config'
 import * as consoleModule from '@/utils/console'
-import { generateScoreDots } from '@/utils/console'
+import { ICONS } from '@/utils/console'
 import * as generalUtils from '@/utils/general'
+import * as llmUtils from '@/utils/llm'
 
 vi.mock('@/utils/console', async () => {
   const actual = await vi.importActual('@/utils/console')
@@ -14,23 +13,68 @@ vi.mock('@/utils/console', async () => {
     ...actual,
     console: {
       log: vi.fn(),
+      logL: vi.fn(),
+      error: vi.fn(),
     },
   }
 })
 
 vi.mock('@/utils/general')
+vi.mock('@/utils/llm')
+vi.mock('@/config')
+vi.mock('picocolors', () => ({
+  default: {
+    magenta: (str: string) => str,
+    cyan: (str: string) => str,
+    green: (str: string) => str,
+    red: (str: string) => str,
+    yellow: (str: string) => str,
+    blue: (str: string) => str,
+    dim: (str: string) => str,
+    bold: (str: string) => str,
+    italic: (str: string) => str,
+    underline: (str: string) => str,
+  },
+}))
+
+const mockModels = [
+  { provider: 'openai', value: 'gpt-1', alias: 'GPT-1', iq: 5, speed: 5 },
+  { provider: 'openai', value: 'gpt-1-mini', alias: 'GPT-1 Mini', iq: 4, speed: 5 },
+  { provider: 'google', value: 'gemini-1-pro', alias: 'Gemini 1 Pro', iq: 5, speed: 4 },
+]
+
+const mockRegistry = {
+  searchModels: vi.fn().mockResolvedValue({ data: mockModels }),
+  clearCache: vi.fn().mockResolvedValue(undefined),
+}
 
 describe('models command', () => {
   let mockConsoleLog: MockedFunction<any>
+  let mockConsoleLogL: MockedFunction<any>
   let mockHandleCliError: MockedFunction<typeof generalUtils.handleCliError>
+  let mockGetRegistry: MockedFunction<typeof llmUtils.getRegistry>
+  let mockResolveConfig: MockedFunction<typeof configModule.resolveConfig>
 
   beforeEach(() => {
     vi.clearAllMocks()
     mockConsoleLog = consoleModule.console.log as MockedFunction<typeof consoleModule.console.log>
+    mockConsoleLogL = consoleModule.console.logL as MockedFunction<typeof consoleModule.console.logL>
     mockHandleCliError = generalUtils.handleCliError as MockedFunction<typeof generalUtils.handleCliError>
+    mockGetRegistry = llmUtils.getRegistry as MockedFunction<typeof llmUtils.getRegistry>
+    mockResolveConfig = configModule.resolveConfig as MockedFunction<typeof configModule.resolveConfig>
+
     mockHandleCliError.mockImplementation((message, details) => {
       throw new Error(`${message} ${details ? JSON.stringify(details) : ''}`.trim())
     })
+
+    mockGetRegistry.mockReturnValue(mockRegistry as any)
+    mockResolveConfig.mockResolvedValue({
+      config: {
+        registry: {
+          status: ['latest', 'preview'],
+        },
+      },
+    } as any)
   })
 
   const baseArgsToRun = {
@@ -39,141 +83,60 @@ describe('models command', () => {
 
   it('should show all models when no provider is specified', async () => {
     await modelsCommand.run?.({
-      args: { ...baseArgsToRun, providers: undefined } as any,
+      args: { ...baseArgsToRun } as any,
       rawArgs: [],
       cmd: modelsCommand.meta as any,
     })
 
+    expect(mockGetRegistry).toHaveBeenCalled()
+    expect(mockRegistry.searchModels).toHaveBeenCalledWith({
+      provider: undefined,
+      status: ['latest', 'preview'],
+    })
+
     expect(mockConsoleLog).toHaveBeenCalledWith('`Available Models:`')
-
-    const allModels: ModelDefinition[] = Object.values(availableModels).flat()
-    let maxLength = 0
-    for (const model of allModels) {
-      const len = `    - ${model.alias}: ${model.value}`.length
-      if (len > maxLength)
-        maxLength = len
-    }
-
-    for (const provider of Object.keys(availableModels)) {
-      expect(mockConsoleLog).toHaveBeenCalledWith(`  \`${provider}\``)
-      const models = availableModels[provider as keyof typeof availableModels]
-      for (const model of models) {
-        const iqDots = generateScoreDots(model.iq, c.magenta)
-        const speedDots = generateScoreDots(model.speed, c.cyan)
-        const attributes = [iqDots, speedDots].filter(Boolean).join('  ')
-
-        const modelInfo = `    - **${model.alias}**: ${model.value}`
-        const plainModelInfoLength = `    - ${model.alias}: ${model.value}`.length
-        const padding = ' '.repeat(maxLength - plainModelInfoLength)
-
-        expect(mockConsoleLog).toHaveBeenCalledWith(`${modelInfo}${padding}  ${attributes}`)
-      }
-    }
+    expect(mockConsoleLog).toHaveBeenCalledWith('  `openai`')
+    expect(mockConsoleLog).toHaveBeenCalledWith('    - **GPT-1**: gpt-1                ●●●●● 5  ●●●●● 5')
+    expect(mockConsoleLog).toHaveBeenCalledWith('    - **GPT-1 Mini**: gpt-1-mini      ●●●●○ 4  ●●●●● 5')
+    expect(mockConsoleLog).toHaveBeenCalledWith('  `google`')
+    expect(mockConsoleLog).toHaveBeenCalledWith('    - **Gemini 1 Pro**: gemini-1-pro  ●●●●● 5  ●●●●○ 4')
   })
 
   it('should show models for a single specified provider', async () => {
     const provider = 'openai'
     await modelsCommand.run?.({
-      args: { ...baseArgsToRun, _: [provider], providers: provider } as any,
-      rawArgs: [provider],
+      args: { ...baseArgsToRun, provider } as any,
+      rawArgs: [],
       cmd: modelsCommand.meta as any,
     })
 
-    expect(mockConsoleLog).toHaveBeenCalledWith('`Available Models:`')
-    expect(mockConsoleLog).toHaveBeenCalledWith(`  \`${provider}\``)
-
-    const models = availableModels[provider]
-    let maxLength = 0
-    for (const model of models) {
-      const len = `    - ${model.alias}: ${model.value}`.length
-      if (len > maxLength)
-        maxLength = len
-    }
-
-    for (const model of models) {
-      const iqDots = generateScoreDots(model.iq, c.magenta)
-      const speedDots = generateScoreDots(model.speed, c.cyan)
-      const attributes = [iqDots, speedDots].filter(Boolean).join('  ')
-
-      const modelInfo = `    - **${model.alias}**: ${model.value}`
-      const plainModelInfoLength = `    - ${model.alias}: ${model.value}`.length
-      const padding = ' '.repeat(maxLength - plainModelInfoLength)
-
-      expect(mockConsoleLog).toHaveBeenCalledWith(`${modelInfo}${padding}  ${attributes}`)
-    }
+    expect(mockRegistry.searchModels).toHaveBeenCalledWith({
+      provider: ['openai'],
+      status: ['latest', 'preview'],
+    })
   })
 
-  it('should show models for multiple specified providers', async () => {
-    const providersToShow = ['openai', 'google']
+  it('should clear cache when --clear-cache is passed', async () => {
     await modelsCommand.run?.({
-      args: { ...baseArgsToRun, _: providersToShow, providers: providersToShow[0] } as any,
-      rawArgs: providersToShow,
+      args: { ...baseArgsToRun, 'clear-cache': true } as any,
+      rawArgs: [],
       cmd: modelsCommand.meta as any,
     })
 
-    expect(mockConsoleLog).toHaveBeenCalledWith('`Available Models:`')
-
-    const modelsToList: ModelDefinition[] = providersToShow.flatMap(p => [...availableModels[p as keyof typeof availableModels]])
-    let maxLength = 0
-    for (const model of modelsToList) {
-      const len = `    - ${model.alias}: ${model.value}`.length
-      if (len > maxLength)
-        maxLength = len
-    }
-
-    for (const provider of providersToShow) {
-      expect(mockConsoleLog).toHaveBeenCalledWith(`  \`${provider}\``)
-      const models = availableModels[provider as keyof typeof availableModels]
-      for (const model of models) {
-        const iqDots = generateScoreDots(model.iq, c.magenta)
-        const speedDots = generateScoreDots(model.speed, c.cyan)
-        const attributes = [iqDots, speedDots].filter(Boolean).join('  ')
-
-        const modelInfo = `    - **${model.alias}**: ${model.value}`
-        const plainModelInfoLength = `    - ${model.alias}: ${model.value}`.length
-        const padding = ' '.repeat(maxLength - plainModelInfoLength)
-
-        expect(mockConsoleLog).toHaveBeenCalledWith(`${modelInfo}${padding}  ${attributes}`)
-      }
-    }
+    expect(mockRegistry.clearCache).toHaveBeenCalled()
+    expect(mockConsoleLogL).toHaveBeenCalledWith(ICONS.result, 'LLM registry cache cleared.')
+    expect(mockRegistry.searchModels).not.toHaveBeenCalled()
   })
 
-  it('should call handleCliError for an invalid provider', async () => {
-    const invalidProvider = 'invalid-provider'
-    const argsToRun = {
-      _: [invalidProvider],
-      providers: invalidProvider,
-    }
+  it('should show warning when no models found', async () => {
+    mockRegistry.searchModels.mockResolvedValueOnce({ data: [] })
 
-    await expect(modelsCommand.run?.({
-      args: argsToRun as any,
-      rawArgs: [invalidProvider],
+    await modelsCommand.run?.({
+      args: { ...baseArgsToRun } as any,
+      rawArgs: [],
       cmd: modelsCommand.meta as any,
-    })).rejects.toThrow()
+    })
 
-    expect(mockHandleCliError).toHaveBeenCalledWith(
-      `Invalid provider "${invalidProvider}"`,
-      `Available providers: ${providers.join(', ')}`,
-    )
-  })
-
-  it('should call handleCliError for one invalid provider among valid ones', async () => {
-    const providersToShow = ['openai', 'invalid-provider']
-    const argsToRun = {
-      _: providersToShow,
-      providers: providersToShow[0],
-    }
-
-    await expect(modelsCommand.run?.({
-      args: argsToRun as any,
-      rawArgs: providersToShow,
-      cmd: modelsCommand.meta as any,
-    })).rejects.toThrow()
-
-    expect(mockHandleCliError).toHaveBeenCalledWith(
-      'Invalid provider "invalid-provider"',
-      `Available providers: ${providers.join(', ')}`,
-    )
-    expect(mockConsoleLog).not.toHaveBeenCalled()
+    expect(mockConsoleLogL).toHaveBeenCalledWith(ICONS.warning, 'No models found.')
   })
 })

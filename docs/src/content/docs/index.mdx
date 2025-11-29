@@ -14,19 +14,20 @@ hero:
       variant: minimal
 ---
 
-import { Card, CardGrid } from '@astrojs/starlight/components';
+import { CardGrid } from '@astrojs/starlight/components';
+import Card from 'starlight-plugin-icons/components/Card.astro';
 
 <CardGrid stagger>
-	<Card title="E2E Translation" icon="approve-check-circle">
+	<Card title="E2E Translation" icon="i-ph:check-circle-duotone" bordered>
 		One command to find new keys, add them to your locales, and translate them.
 	</Card>
-	<Card title="Broad Compatibility" icon="puzzle">
+	<Card title="Broad Compatibility" icon="i-ph:puzzle-piece-duotone" bordered>
 		Should work with any framework and any LLM provider.
 	</Card>
-	<Card title="Versatile" icon="magnifier">
-		Provides many commands for managing your locale files.
+	<Card title="Always Up-to-Date" icon="i-ph:arrows-clockwise-duotone" bordered>
+		Uses [@rttnd/llm](https://github.com/Rettend/llm) to fetch the latest models at runtime.
 	</Card>
-  <Card title="Automate" icon="rocket">
+  <Card title="Automate" icon="i-ph:rocket-launch-duotone" bordered>
     Set up `lin` in your CI once and forget about it.
   </Card>
 </CardGrid>

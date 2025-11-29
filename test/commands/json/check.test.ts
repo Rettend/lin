@@ -17,9 +17,10 @@ const actualUtils = await vi.importActual<typeof utilsModule>('@/utils')
 
 const mockParse = vi.fn()
 vi.mock('i18next-parser', () => {
-  const MockParserClass = vi.fn().mockImplementation(() => ({
-    parse: mockParse,
-  }))
+  const MockParserClass = class {
+    parse = mockParse
+    constructor() {}
+  }
   class MockBaseLexer {
     constructor() {}
     functionPattern() {

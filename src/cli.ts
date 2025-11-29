@@ -2,7 +2,7 @@ import process from 'node:process'
 import { defineCommand, runMain, showUsage } from 'citty'
 import { commands } from '@/commands'
 import { commonArgs, resolveConfig } from '@/config'
-import { console, ICONS } from '@/utils'
+import { console, destroyRegistry, ICONS } from '@/utils'
 import { description, version } from '../package.json'
 import 'dotenv/config'
 
@@ -71,3 +71,11 @@ if (isModels) {
 }
 
 runMain(main, { rawArgs: finalArgs })
+  .then(() => {
+    destroyRegistry()
+  })
+  .catch((err) => {
+    console.error(err)
+    destroyRegistry()
+    process.exit(1)
+  })

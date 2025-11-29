@@ -1,6 +1,6 @@
 import type { Mock } from 'vitest'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { providers } from '@/config/constants'
+
 import { normalizeArgs } from '@/config/helpers'
 import { handleCliError } from '@/utils/general'
 
@@ -73,14 +73,7 @@ describe('normalizeArgs', () => {
     })
   })
 
-  it('should call handleCliError for an invalid provider', () => {
-    const inputArgs = { provider: 'invalid-provider' }
-    expect(() => normalizeArgs(inputArgs)).toThrow('handleCliError was called')
-    expect(mockedHandleCliError).toHaveBeenCalledWith(
-      'Invalid provider "invalid-provider"',
-      `Available providers: ${providers.join(', ')}`,
-    )
-  })
+
 
   it('should call handleCliError for an invalid temperature', () => {
     const inputArgs = { temperature: 'not-a-number' }
@@ -88,14 +81,7 @@ describe('normalizeArgs', () => {
     expect(mockedHandleCliError).toHaveBeenCalledWith('Invalid temperature "not-a-number"')
   })
 
-  it('should call handleCliError for an invalid mode', () => {
-    const inputArgs = { mode: 'invalid-mode' }
-    expect(() => normalizeArgs(inputArgs)).toThrow('handleCliError was called')
-    expect(mockedHandleCliError).toHaveBeenCalledWith(
-      'Invalid mode "invalid-mode"',
-      'Available modes: auto, json, custom',
-    )
-  })
+
 
   it('should handle Azure-specific arguments from top level', () => {
     const inputArgs = {
