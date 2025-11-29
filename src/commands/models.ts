@@ -2,7 +2,6 @@ import { defineCommand } from 'citty'
 import c from 'picocolors'
 import { resolveConfig } from '@/config'
 import { commonArgs } from '@/config/args'
-import { providers } from '@/config/constants'
 import { console, generateScoreDots, ICONS } from '@/utils/console'
 import { getRegistry } from '@/utils/llm'
 
@@ -48,31 +47,13 @@ export default defineCommand({
       status: config.registry.status,
     })
 
-    if (!models) {
+    if (!models || models.length === 0) {
       console.logL(ICONS.warning, 'No models found.')
-      return
-    }
-
-    // const filteredModels = models.filter(m => m.status && config.registry.status.includes(m.status))
-    const filteredModels = models
-
-    if (filteredModels.length === 0) {
-      console.logL(ICONS.warning, 'No models found.')
-      return
-    }
-
-    let modelsToShow = filteredModels
-    if (providersFromArgs.size === 0)
-      modelsToShow = filteredModels
-      // modelsToShow = filteredModels.filter(m => (providers as readonly string[]).includes(m.provider))
-
-    if (modelsToShow.length === 0) {
-      console.logL(ICONS.warning, 'No supported models found.')
       return
     }
 
     // Group by provider
-    const modelsByProvider = modelsToShow.reduce((acc, model) => {
+    const modelsByProvider = models.reduce((acc, model) => {
       if (!acc[model.provider])
         acc[model.provider] = []
 

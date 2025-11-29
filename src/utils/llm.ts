@@ -11,6 +11,7 @@ import { createMistral } from '@ai-sdk/mistral'
 import { createOpenAI } from '@ai-sdk/openai'
 import { createXai } from '@ai-sdk/xai'
 import { confirm } from '@clack/prompts'
+import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { createRegistry } from '@rttnd/llm'
 import { generateObject } from 'ai'
 import { merge } from 'lodash-es'
@@ -93,6 +94,8 @@ function getInstance(provider: Provider) {
       return createCerebras
     case 'azure':
       return createAzure
+    case 'openrouter':
+      return createOpenRouter
     default:
       handleCliError(`Unsupported provider: ${provider}`, `Supported providers are: ${providers.join(', ')}.`)
   }

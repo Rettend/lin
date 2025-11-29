@@ -23,6 +23,10 @@ export default defineConfig({
     apiVersion: '2025-04-01-preview',
   },
   presets: {
+    'free': {
+      provider: 'openrouter',
+      model: 'x-ai/grok-4.1-fast:free',
+    },
     'grok': {
       provider: 'azure',
       model: 'grok-4-fast-non-reasoning',

@@ -461,7 +461,7 @@ describe('llm utils', () => {
 
       expect(mockHandleCliError).toHaveBeenCalledWith(
         'Unsupported provider: unsupported',
-        'Supported providers are: openai, anthropic, google, xai, mistral, groq, cerebras, azure.',
+        'Supported providers are: openai, anthropic, google, xai, mistral, groq, cerebras, azure, openrouter.',
       )
     })
   })

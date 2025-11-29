@@ -10,6 +10,7 @@ export const providers = [
   'groq',
   'cerebras',
   'azure',
+  'openrouter',
 ] as const
 
 export const integrations = [
