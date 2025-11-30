@@ -12,7 +12,7 @@ All commands and types are exported from the main package entry point.
 
 The `run` function allows you to execute any command.
 
-```ts
+```ts title="index.ts"
 import { run } from '@rttnd/lin'
 
 // Simple usage: run the 'translate' command with the --silent flag
@@ -23,7 +23,7 @@ await run('translate', ['-S'])
 
 The `run` function accepts an optional third argument, `options`, to control execution behavior. It returns a `RunResult` object with details about the execution.
 
-```ts
+```ts title="index.ts"
 function run(
   command: keyof Commands,
   rawArgs?: string[],
@@ -49,7 +49,7 @@ function run(
 
 Here's how you can see what files `check --fix` would change, without actually modifying your disk:
 
-```ts
+```ts title="index.ts"
 import { run } from '@rttnd/lin'
 
 const { output, writes } = await run(

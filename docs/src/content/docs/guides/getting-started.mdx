@@ -58,7 +58,7 @@ For the complete config, see [Configuration](/reference/configuration).
     <Tabs syncKey="config-file">
       <TabItem label="lin.config.ts">
         Add an `i18n` object to your main `lin.config.ts` file.
-        ```ts
+        ```ts title="lin.config.ts"
         import { defineConfig } from '@rttnd/lin'
 
         export default defineConfig({
@@ -67,13 +67,17 @@ For the complete config, see [Configuration](/reference/configuration).
             defaultLocale: 'en-US',
             directory: 'locales',
           },
-          // ... other lin config
+          adapters: {
+            json: {
+              directory: 'locales',
+            }
+          }
         })
         ```
       </TabItem>
       <TabItem label="i18n.config.ts">
         If you don't plan to use other `lin` config, just create a `i18n.config.ts` file.
-        ```ts
+        ```ts title="i18n.config.ts"
         import { defineI18nConfig } from '@rttnd/lin'
 
         export default defineI18nConfig({
@@ -85,6 +89,8 @@ For the complete config, see [Configuration](/reference/configuration).
       </TabItem>
     </Tabs>
 
+    `lin` uses the `json` adapter by default. See [Adapters](/reference/configuration#adapters) for more options.
+
 3.  **Configure LLMs**
 
     You need to specify the model and the provider in your configuration.
@@ -92,7 +98,7 @@ For the complete config, see [Configuration](/reference/configuration).
 
     These are the defaults:
 
-    ```ts
+    ```ts title="lin.config.ts"
     import { defineConfig } from '@rttnd/lin'
 
     export default defineConfig({

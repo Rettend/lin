@@ -61,8 +61,6 @@ export default defineCommand({
       return acc
     }, {} as Record<string, NonNullable<typeof models>>)
 
-    console.log('`Available Models:`')
-
     let maxLength = 0
     for (const provider in modelsByProvider) {
       modelsByProvider[provider].forEach((model) => {
@@ -72,13 +70,19 @@ export default defineCommand({
       })
     }
 
+    const headerPadding = ' '.repeat(Math.max(0, maxLength + 2 - 17))
+    console.log(`\`Available Models:\`${headerPadding}${c.magenta('  IQ   ')}  ${c.cyan(' Speed ')}`)
+
     for (const [provider, providerModels] of Object.entries(modelsByProvider)) {
       console.log(`  \`${provider}\``)
       providerModels.forEach((model) => {
         const iqDots = generateScoreDots(model.iq, c.magenta)
         const speedDots = generateScoreDots(model.speed, c.cyan)
 
-        const attributesString = [iqDots, speedDots].filter(Boolean).join('  ')
+        const missing = c.dim('----- -')
+        const iqPart = iqDots || missing
+        const speedPart = speedDots || missing
+        const attributesString = `${iqPart}  ${speedPart}`
         const modelInfo = `    - **${model.alias}**: ${model.value}`
         const modelInfoLength = `    - ${model.alias}: ${model.value}`.length
         const padding = ' '.repeat(maxLength - modelInfoLength)

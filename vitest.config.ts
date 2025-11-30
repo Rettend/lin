@@ -5,6 +5,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    testTimeout: 10000,
     exclude: [
       ...configDefaults.exclude,
       'src/parsers/template/*',

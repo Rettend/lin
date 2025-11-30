@@ -1,3 +1,4 @@
+import process from 'node:process'
 import { vi } from 'vitest'
 import * as consoleUtils from '@/utils/console'
 import * as generalUtils from '@/utils/general'

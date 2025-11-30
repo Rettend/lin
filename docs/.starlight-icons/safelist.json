@@ -1,7 +1,10 @@
 [
   "i-material-icon-theme:document",
-  "i-material-icon-theme:json",
+  "i-material-icon-theme:nodejs",
   "i-material-icon-theme:svelte",
+  "i-material-icon-theme:typescript",
+  "i-material-icon-theme:typescript-def",
+  "i-material-icon-theme:vite",
   "i-material-icon-theme:yaml",
   "i-ph:code-duotone",
   "i-ph:gear-duotone",
@@ -9,5 +12,6 @@
   "i-ph:puzzle-piece-duotone",
   "i-ph:rocket-launch-duotone",
   "i-ph:terminal-window-duotone",
-  "i-ph:translate-duotone"
+  "i-ph:translate-duotone",
+  "i-starlight-plugin-icons:svelte-ts"
 ]

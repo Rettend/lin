@@ -94,7 +94,7 @@ describe('models command', () => {
       status: ['latest', 'preview'],
     })
 
-    expect(mockConsoleLog).toHaveBeenCalledWith('`Available Models:`')
+    expect(mockConsoleLog).toHaveBeenCalledWith('`Available Models:`                   IQ      Speed ')
     expect(mockConsoleLog).toHaveBeenCalledWith('  `openai`')
     expect(mockConsoleLog).toHaveBeenCalledWith('    - **GPT-1**: gpt-1                ●●●●● 5  ●●●●● 5')
     expect(mockConsoleLog).toHaveBeenCalledWith('    - **GPT-1 Mini**: gpt-1-mini      ●●●●○ 4  ●●●●● 5')

@@ -1,0 +1,190 @@
+---
+title: Svelte
+description: How to use lin with Svelte 5.
+---
+
+import { Tabs, TabItem, Steps } from '@astrojs/starlight/components';
+
+Here is a Svelte 5 i18n example.
+
+`lin` provides a **Vite plugin** that exposes your `lin` configuration (like `locales` and `defaultLocale`) directly to your client-side code via a virtual module.
+
+## Install
+
+<Tabs syncKey="pkg">
+  <TabItem label="npm">
+    ```sh
+    npm i -D @rttnd/lin
+    npm i i18next
+    ```
+  </TabItem>
+  <TabItem label="pnpm">
+    ```sh
+    pnpm add -D @rttnd/lin
+    pnpm add i18next
+    ```
+  </TabItem>
+  <TabItem label="yarn">
+    ```sh
+    yarn add -D @rttnd/lin
+    yarn add i18next
+    ```
+  </TabItem>
+  <TabItem label="bun">
+    ```sh
+    bun add -d @rttnd/lin
+    bun add i18next
+    ```
+  </TabItem>
+  <TabItem label="ni">
+    ```sh
+    ni -D @rttnd/lin
+    ni i18next
+    ```
+  </TabItem>
+</Tabs>
+
+## Configuration
+
+<Steps>
+
+1.  **Set up `lin`**
+
+    Follow the [Getting Started](/guides/getting-started) guide.
+
+2.  **Add the Vite Plugin**
+
+    Add `linVitePlugin` to your Vite config:
+
+    ```ts title="vite.config.ts" ins={2,8}
+    import { sveltekit } from '@sveltejs/kit/vite'
+    import linVitePlugin from '@rttnd/lin/vite'
+    import { defineConfig } from 'vite'
+
+    export default defineConfig({
+      plugins: [
+        sveltekit(),
+        linVitePlugin(),
+      ],
+    })
+    ```
+
+</Steps>
+
+## Runtime Implementation
+
+This uses **lazy loading**: each locale will have it's own chunk, and be only loaded when needed.
+
+```ts title="src/lib/i18n.svelte.ts"
+import i18next from 'i18next'
+import { defaultLocale, locales } from 'virtual:lin/config'
+
+const state = $state({
+  locale: defaultLocale,
+  isLoading: false,
+})
+
+const loaders = import.meta.glob('./locales/*.json')
+
+const i18n = {
+  get locale() {
+    return state.locale
+  },
+  get isLoading() {
+    return state.isLoading
+  },
+  get locales() {
+    return locales
+  },
+  async setLocale(locale: string) {
+    if (!locales.includes(locale)) {
+      console.warn(`[i18n] Locale "${locale}" is not supported.`)
+      return
+    }
+
+    state.isLoading = true
+    try {
+      if (!i18next.hasResourceBundle(locale, 'translation')) {
+        const loader = loaders[`./locales/${locale}.json`]
+        if (loader) {
+          const module = await loader() as { default: any }
+          i18next.addResourceBundle(locale, 'translation', module.default, true, true)
+        }
+      }
+
+      await i18next.changeLanguage(locale)
+      state.locale = locale
+      localStorage.setItem('locale', locale)
+    }
+    finally {
+      state.isLoading = false
+    }
+  },
+}
+
+export function t(key: string, fallback?: string, options?: Record<string, any>) {
+  return i18next.t(key, {
+    defaultValue: fallback,
+    lng: state.locale,
+    ...options,
+  })
+}
+
+export async function initI18n() {
+  await i18next.init({
+    lng: defaultLocale,
+    fallbackLng: defaultLocale,
+    debug: import.meta.env.DEV,
+    resources: {},
+  })
+  const stored = localStorage.getItem('locale')
+  const initial = (stored && locales.includes(stored)) ? stored : 'hu-HU'
+  await i18n.setLocale(initial)
+}
+
+export default i18n
+```
+
+### TypeScript Support
+
+To get type support for the virtual module, add this to your `src/app.d.ts` (or create a new one):
+
+```ts title="src/lin.d.ts"
+declare module 'virtual:lin/config' {
+  export const locales: string[]
+  export const defaultLocale: string
+}
+```
+
+## Usage
+
+Initialize `i18n` in your root layout:
+
+```svelte title="src/routes/+layout.svelte"
+<script>
+  import { initI18n } from '$lib/i18n.svelte'
+  import { onMount } from 'svelte'
+  
+  const { children } = $props()
+  
+  onMount(() => {
+    initI18n()
+  })
+</script>
+
+{@render children()}
+```
+
+Then use it in your components:
+
+```svelte title="src/routes/+page.svelte"
+<script>
+  import i18n, { t } from '$lib/i18n.svelte'
+</script>
+
+<h1>{t('hello.world', 'Hello World')}</h1>
+
+<button onclick={() => i18n.setLocale('fr-FR')}>
+  Switch to French
+</button>
+```

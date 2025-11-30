@@ -27,7 +27,7 @@ If your framework is not auto-detected, you can put your i18n config inside your
 <Tabs syncKey="config-file">
   <TabItem label="lin.config.ts">
     Add an `i18n` object to your main `lin.config.ts` file.
-    ```ts
+    ```ts title="lin.config.ts"
     import { defineConfig } from '@rttnd/lin'
 
     export default defineConfig({
@@ -42,7 +42,7 @@ If your framework is not auto-detected, you can put your i18n config inside your
   </TabItem>
   <TabItem label="i18n.config.ts">
     If you don't plan to use other `lin` config, just create a `i18n.config.ts` file.
-    ```ts
+    ```ts title="i18n.config.ts"
     import { defineI18nConfig } from '@rttnd/lin'
 
     export default defineI18nConfig({
@@ -53,6 +53,40 @@ If your framework is not auto-detected, you can put your i18n config inside your
     ```
   </TabItem>
 </Tabs>
+
+### Adapters
+
+`lin` supports multiple adapters to read and write translations. By default, it uses the `json` adapter.
+
+```ts title="lin.config.ts"
+export default defineConfig({
+  adapters: {
+    json: {
+      directory: 'locales',
+    },
+    markdown: {
+      files: ['content/**/*.md'],
+    }
+  }
+})
+```
+
+#### JSON Adapter
+
+The default adapter. It reads and writes JSON files.
+
+- `directory`: The directory where your locale files are stored. Defaults to `locales`.
+- `sort`: How to sort the keys in the JSON file.
+  - `'abc'`: Alphabetical order.
+  - `'def'`: Same order as the default locale.
+
+#### Markdown Adapter
+
+Used to translate Markdown files.
+
+- `files`: An array of glob patterns to find Markdown files.
+- `localesDir`: Where to store the translated Markdown files. Defaults to the same directory as the source file, but with the locale code appended (e.g., `file.es.md`).
+- `output`: The output format.
 
 ### LLM Config
 
