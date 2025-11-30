@@ -73,4 +73,17 @@ describe('svelteLexer', () => {
       'key.6',
     ])
   })
+
+  it('should extract keys with interpolation arguments', () => {
+    const lexer = new SvelteLexer()
+    const content = `
+      <script>
+        t('key.with.interpolation', 'Limit: {{limit}}', { limit: defaultLimit ?? 0 })
+      </script>
+    `
+    const keys = lexer.extract(content)
+    expect(keys).toEqual([
+      { key: 'key.with.interpolation', defaultValue: 'Limit: {{limit}}', file: undefined },
+    ])
+  })
 })
