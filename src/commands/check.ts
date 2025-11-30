@@ -423,8 +423,12 @@ export default defineCommand({
             }
 
             saveUndoState(Object.keys(filesToWrite), config as any)
-            for (const [filePath, content] of Object.entries(filesToWrite))
+            for (const [filePath, content] of Object.entries(filesToWrite)) {
+              const dir = path.dirname(filePath)
+              if (!fs.existsSync(dir))
+                fs.mkdirSync(dir, { recursive: true })
               fs.writeFileSync(filePath, `${JSON.stringify(content, null, 2)}\n`, { encoding: 'utf8' })
+            }
 
             console.log(ICONS.success, 'Missing keys added successfully.')
             return
@@ -518,6 +522,9 @@ export default defineCommand({
             const defaultLocalePath = r(`${i18n.defaultLocale}.json`, config)
             const merged = mergeMissingTranslations(defaultLocaleJson, missingWithValues)
             saveUndoState([defaultLocalePath], config as any)
+            const dir = path.dirname(defaultLocalePath)
+            if (!fs.existsSync(dir))
+              fs.mkdirSync(dir, { recursive: true })
             fs.writeFileSync(defaultLocalePath, `${JSON.stringify(merged, null, 2)}\n`, { encoding: 'utf8' })
             if (!args.silent)
               console.log(ICONS.success, 'Missing keys added.')
@@ -547,6 +554,9 @@ export default defineCommand({
                     nested.delete()
                 }
                 cleanupEmptyObjects(localeJson)
+                const dir = path.dirname(localePath)
+                if (!fs.existsSync(dir))
+                  fs.mkdirSync(dir, { recursive: true })
                 fs.writeFileSync(localePath, `${JSON.stringify(localeJson, null, 2)}\n`, { encoding: 'utf8' })
               }
               if (!args.silent)

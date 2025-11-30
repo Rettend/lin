@@ -147,7 +147,25 @@ export default defineCommand({
         }
         if (adapterId === 'json') {
           const localesToCheck = locales.length > 0 ? locales : i18n.locales.filter(l => l !== i18n.defaultLocale)
-          const defaultLocaleJson = JSON.parse(fs.readFileSync(r(`${i18n.defaultLocale}.json`, config), { encoding: 'utf8' }))
+          let defaultLocaleJson: LocaleJson
+          try {
+            defaultLocaleJson = JSON.parse(fs.readFileSync(r(`${i18n.defaultLocale}.json`, config), { encoding: 'utf8' }))
+          }
+          catch (error: any) {
+            if (error.code === 'ENOENT') {
+              if (!args.silent)
+                console.log(ICONS.warning, `File not found for default locale **${i18n.defaultLocale}**. Creating a new one.`)
+              defaultLocaleJson = {}
+              const defaultPath = r(`${i18n.defaultLocale}.json`, config)
+              const dir = path.dirname(defaultPath)
+              if (!fs.existsSync(dir))
+                fs.mkdirSync(dir, { recursive: true })
+              fs.writeFileSync(defaultPath, JSON.stringify(defaultLocaleJson, null, 2), 'utf-8')
+            }
+            else {
+              throw error
+            }
+          }
 
           const withOption = args.with !== undefined ? args.with : config.with
 
@@ -271,8 +289,12 @@ export default defineCommand({
 
           if (Object.keys(translationsToWrite).length > 0) {
             saveUndoState(Object.keys(translationsToWrite), config as any)
-            for (const localePath of Object.keys(translationsToWrite))
+            for (const localePath of Object.keys(translationsToWrite)) {
+              const dir = path.dirname(localePath)
+              if (!fs.existsSync(dir))
+                fs.mkdirSync(dir, { recursive: true })
               fs.writeFileSync(localePath, `${jsonAdapter.render(localePath, '', translationsToWrite[localePath]).text}\n`, { encoding: 'utf8' })
+            }
           }
           else if (args.silent) {
             console.log('All locales are up to date.')

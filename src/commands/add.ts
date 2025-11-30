@@ -1,5 +1,6 @@
 import type { LocaleJson } from '@/utils'
 import fs from 'node:fs'
+import path from 'node:path'
 import { text } from '@clack/prompts'
 import { defineCommand } from 'citty'
 import { allArgs, resolveConfig } from '@/config'
@@ -74,7 +75,16 @@ export default defineCommand({
       let translation = positionalArgs.join(' ')
       const translationProvided = positionalArgs.length > 0
 
-      const defaultLocaleJson = JSON.parse(fs.readFileSync(r(`${i18n.defaultLocale}.json`, config), { encoding: 'utf8' }))
+      let defaultLocaleJson: LocaleJson
+      try {
+        defaultLocaleJson = JSON.parse(fs.readFileSync(r(`${i18n.defaultLocale}.json`, config), { encoding: 'utf8' }))
+      }
+      catch (error: any) {
+        if (error.code === 'ENOENT')
+          defaultLocaleJson = {}
+        else
+          throw error
+      }
 
       if (key.endsWith('.')) {
         provideSuggestions(defaultLocaleJson, key)
@@ -245,8 +255,12 @@ export default defineCommand({
           return
 
         saveUndoState(Object.keys(translationsToWrite), config as any)
-        for (const localePath of Object.keys(translationsToWrite))
+        for (const localePath of Object.keys(translationsToWrite)) {
+          const dir = path.dirname(localePath)
+          if (!fs.existsSync(dir))
+            fs.mkdirSync(dir, { recursive: true })
           fs.writeFileSync(localePath, `${JSON.stringify(translationsToWrite[localePath], null, 2)}\n`, { encoding: 'utf8' })
+        }
       }
       else if (!args.silent) {
         console.log(ICONS.success, 'All locales are up to date.')

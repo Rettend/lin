@@ -162,10 +162,14 @@ export async function resolveConfig(
   const hasCustomSvelteLexer = loadedFromFileConfig.parser?.lexers?.svelte
 
   if (isSvelteProject && !hasCustomSvelteLexer) {
-    if (!finalMergedConfig.parser.lexers) {
+    if (!finalMergedConfig.parser.lexers)
       (finalMergedConfig.parser as any).lexers = {}
 
-      ;(finalMergedConfig.parser.lexers as any).svelte = [SvelteLexer]
+    if (!(finalMergedConfig.parser.lexers as any).svelte) {
+      (finalMergedConfig.parser.lexers as any).svelte = [SvelteLexer]
+      if (finalMergedConfig.debug)
+        // eslint-disable-next-line no-console
+        console.log('  [debug] Added SvelteLexer to parser config')
     }
   }
 
